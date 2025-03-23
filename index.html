@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Allenamento Abbinamenti Numeri - Parole</title>
+  <style>
+    /* Stili comuni */
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: #333;
+      border-radius: 20px;
+      padding: 20px;
+      width: 320px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+    /* Sezione menu */
+    #menu h1 {
+      color: #0f0; /* Titolo in verde */
+    }
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .menu-buttons button {
+      margin: 10px 0; /* Spazio tra un pulsante e l'altro */
+    }
+    /* Bottoni, input, ecc. */
+    button {
+      background-color: #666;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-size: 1em;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #888;
+    }
+    input[type="text"],
+    input[type="number"] {
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+      text-align: center;
+      width: 80%;
+      margin: 5px 0;
+    }
+    .flashcard {
+      background-color: #000;
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      min-height: 70px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .feedback {
+      margin-top: 10px;
+      font-size: 1.1em;
+    }
+    /* Classi per feedback */
+    .correct {
+      color: lime;
+    }
+    .error {
+      color: red;
+    }
+    /* Nasconde le sezioni non attive */
+    .hidden {
+      display: none;
+    }
+    /* Pulsante "Torna al menu" */
+    .back-btn {
+      background-color: #444;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Menu principale -->
+  <div id="menu" class="container">
+    <h1>Allenamento Abbinamenti</h1>
+    <div class="menu-buttons">
+      <button id="classicModeBtn">Gioco Classico</button>
+      <button id="rangeModeBtn">Gioco Range</button>
+      <button id="multiModeBtn">Gioco Multi-Cifre</button>
+    </div>
+  </div>
+
+  <!-- Gioco Classico -->
+  <div id="classicGame" class="container hidden">
+    <h1>Gioco Classico</h1>
+    <div class="flashcard" id="classicFlashcard"></div>
+    <input type="text" id="classicAnswer" placeholder="Inserisci la parola">
+    <div>
+      <button id="classicCheckBtn">Controlla</button>
+      <button id="classicNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="classicFeedback"></div>
+    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
+  </div>
+
+  <!-- Gioco Range -->
+  <div id="rangeGame" class="container hidden">
+    <h1>Gioco Range</h1>
+    <input type="number" id="rangeMin" placeholder="Min">
+    <input type="number" id="rangeMax" placeholder="Max">
+    <div>
+      <button id="rangeStartBtn">Avvia</button>
+    </div>
+    <div class="flashcard" id="rangeFlashcard"></div>
+    <input type="text" id="rangeAnswer" placeholder="Inserisci la parola">
+    <div>
+      <button id="rangeCheckBtn">Controlla</button>
+      <button id="rangeNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="rangeFeedback"></div>
+    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
+  </div>
+
+  <!-- Gioco Multi-Cifre -->
+  <div id="multiGame" class="container hidden">
+    <h1>Gioco Multi-Cifre</h1>
+    <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1">
+    <div>
+      <button id="multiStartBtn">Avvia</button>
+    </div>
+    <div class="flashcard" id="multiFlashcard"></div>
+    <input type="text" id="multiAnswer" placeholder="Inserisci le parole separate da spazi">
+    <div>
+      <button id="multiCheckBtn">Controlla</button>
+      <button id="multiNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="multiFeedback"></div>
+    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
+  </div>
+
+  <script>
+    // Mappatura: definizione delle coppie numero-parola
+    const mapping = {
+      "0": "Osso",
+      "00": "sasso",
+      "01": "seta",
+      "02": "seno",
+      "03": "Summa",
+      "04": "Sara",
+      "05": "Sale",
+      "06": "sci",
+      "07": "sacco",
+      "08": "sofa",
+      "09": "Seppia",
+      "1": "The",
+      "2": "Noè",
+      "3": "Amo",
+      "4": "Re",
+      "5": "Ali",
+      "6": "Ciao",
+      "7": "Oca",
+      "8": "Ufo",
+      "9": "Boa",
+      "10": "Tazza",
+      "11": "Tetto",
+      "12": "Dino",
+      "13": "Dama",
+      "14": "Torre",
+      "15": "Tela",
+      "16": "Doccia",
+      "17": "Tacco",
+      "18": "TV",
+      "19": "Topo",
+      "20": "Naso",
+      "21": "Nido",
+      "22": "Nonno",
+      "23": "Nemo",
+      "24": "Nero",
+      "25": "Anello",
+      "26": "Noce",
+      "27": "Nek",
+      "28": "Neve",
+      "29": "Nebbia",
+      "30": "Mazza",
+      "31": "Moto",
+      "32": "Mina",
+      "33": "Mamma",
+      "34": "Mare",
+      "35": "Mela",
+      "36": "Micio",
+      "37": "Moca",
+      "38": "Muffa",
+      "39": "Mappa",
+      "40": "Razzo",
+      "41": "Rutto",
+      "42": "Rana",
+      "43": "Remo",
+      "44": "Rara",
+      "45": "Rullo",
+      "46": "Roccia",
+      "47": "Roki",
+      "48": "Rovo",
+      "49": "Rape",
+      "50": "Lazzo",
+      "51": "Latte",
+      "52": "Lana",
+      "53": "Lima",
+      "54": "Lara",
+      "55": "LOL",
+      "56": "Lucio",
+      "57": "Lacca",
+      "58": "Lava",
+      "59": "Lupo",
+      "60": "Cesso",
+      "61": "Cita",
+      "62": "Cena",
+      "63": "Gemma",
+      "64": "Cero",
+      "65": "Gel",
+      "66": "Gigio",
+      "67": "Giacca",
+      "68": "Ciuffo",
+      "69": "Geep",
+      "70": "Cazzo",
+      "71": "Gatto",
+      "72": "Cane",
+      "73": "Gomma",
+      "74": "Carro",
+      "75": "Colla",
+      "76": "Goccia",
+      "77": "Cacca",
+      "78": "Gufo",
+      "79": "Coppa",
+      "80": "Vaso",
+      "81": "Vite",
+      "82": "Vino",
+      "83": "Fumo",
+      "84": "Faro",
+      "85": "Vela",
+      "86": "Foce",
+      "87": "Foca",
+      "88": "Fava",
+      "89": "Fibbia",
+      "90": "Pizza",
+      "91": "Piatto",
+      "92": "Pane",
+      "93": "Puma",
+      "94": "Pera",
+      "95": "Palla",
+      "96": "Bocce",
+      "97": "Pacco",
+      "98": "Puffo",
+      "99": "Pippo"
+    };
+
+    // Funzione per mostrare/nascondere sezioni
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('.container');
+      sections.forEach(sec => {
+        sec.classList.add('hidden');
+      });
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // --- Menu Principale ---
+    document.getElementById('classicModeBtn').addEventListener('click', () => {
+      showSection('classicGame');
+      showClassicCard();
+    });
+    document.getElementById('rangeModeBtn').addEventListener('click', () => {
+      showSection('rangeGame');
+      resetRangeGame();
+    });
+    document.getElementById('multiModeBtn').addEventListener('click', () => {
+      showSection('multiGame');
+      resetMultiGame();
+    });
+
+    // --- Gioco Classico ---
+    let currentClassicKey = "";
+    function pickRandomClassic() {
+      const keys = Object.keys(mapping);
+      const randomIndex = Math.floor(Math.random() * keys.length);
+      return keys[randomIndex];
+    }
+    function showClassicCard() {
+      currentClassicKey = pickRandomClassic();
+      document.getElementById('classicFlashcard').textContent = currentClassicKey;
+      document.getElementById('classicAnswer').value = "";
+      document.getElementById('classicFeedback').textContent = "";
+      document.getElementById('classicAnswer').focus();
+    }
+    function checkClassicAnswer() {
+      const userAns = document.getElementById('classicAnswer').value.trim().toLowerCase();
+      const correctAns = mapping[currentClassicKey].toLowerCase();
+      const feedbackEl = document.getElementById('classicFeedback');
+      if (userAns === correctAns) {
+        feedbackEl.textContent = "Corretto!";
+        feedbackEl.classList.remove('error');
+        feedbackEl.classList.add('correct');
+      } else {
+        feedbackEl.textContent = `Sbagliato. La risposta corretta è: ${mapping[currentClassicKey]}`;
+        feedbackEl.classList.remove('correct');
+        feedbackEl.classList.add('error');
+      }
+    }
+    document.getElementById('classicCheckBtn').addEventListener('click', checkClassicAnswer);
+    document.getElementById('classicNextBtn').addEventListener('click', showClassicCard);
+
+    // --- Gioco Range ---
+    let rangeKeys = [];
+    let currentRangeKey = "";
+    function resetRangeGame() {
+      document.getElementById('rangeMin').value = "";
+      document.getElementById('rangeMax').value = "";
+      document.getElementById('rangeFlashcard').textContent = "";
+      document.getElementById('rangeFeedback').textContent = "";
+      document.getElementById('rangeAnswer').value = "";
+      rangeKeys = [];
+    }
+    function showRangeCard() {
+      const flashcardEl = document.getElementById('rangeFlashcard');
+      const feedbackEl = document.getElementById('rangeFeedback');
+      if (rangeKeys.length === 0) {
+        flashcardEl.textContent = "Nessun numero in questo intervallo!";
+        feedbackEl.textContent = "";
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * rangeKeys.length);
+      currentRangeKey = rangeKeys[randomIndex];
+      flashcardEl.textContent = currentRangeKey;
+      document.getElementById('rangeAnswer').value = "";
+      feedbackEl.textContent = "";
+      document.getElementById('rangeAnswer').focus();
+    }
+    function checkRangeAnswer() {
+      const userAns = document.getElementById('rangeAnswer').value.trim().toLowerCase();
+      const correctAns = mapping[currentRangeKey].toLowerCase();
+      const feedbackEl = document.getElementById('rangeFeedback');
+      if (userAns === correctAns) {
+        feedbackEl.textContent = "Corretto!";
+        feedbackEl.classList.remove('error');
+        feedbackEl.classList.add('correct');
+      } else {
+        feedbackEl.textContent = `Sbagliato. La risposta corretta è: ${mapping[currentRangeKey]}`;
+        feedbackEl.classList.remove('correct');
+        feedbackEl.classList.add('error');
+      }
+    }
+    document.getElementById('rangeStartBtn').addEventListener('click', () => {
+      const minVal = parseInt(document.getElementById('rangeMin').value, 10);
+      const maxVal = parseInt(document.getElementById('rangeMax').value, 10);
+      if (isNaN(minVal) || isNaN(maxVal) || minVal > maxVal) {
+        alert("Inserisci un intervallo valido");
+        return;
+      }
+      // Filtra le chiavi in base al loro valore numerico
+      rangeKeys = Object.keys(mapping).filter(key => {
+        const n = parseInt(key, 10);
+        return !isNaN(n) && n >= minVal && n <= maxVal;
+      });
+      showRangeCard();
+    });
+    document.getElementById('rangeCheckBtn').addEventListener('click', checkRangeAnswer);
+    document.getElementById('rangeNextBtn').addEventListener('click', showRangeCard);
+
+    // --- Gioco Multi-Cifre ---
+    let currentMultiNumber = "";
+    let multiGroups = [];
+    function resetMultiGame() {
+      document.getElementById('multiDigits').value = "";
+      document.getElementById('multiFlashcard').textContent = "";
+      document.getElementById('multiFeedback').textContent = "";
+      document.getElementById('multiAnswer').value = "";
+      currentMultiNumber = "";
+      multiGroups = [];
+    }
+    function generateMultiNumber(numDigits) {
+      let result = "";
+      for (let i = 0; i < numDigits; i++) {
+        result += Math.floor(Math.random() * 10).toString();
+      }
+      return result;
+    }
+    function splitIntoGroups(numStr) {
+      let groups = [];
+      for (let i = 0; i < numStr.length; i += 2) {
+        groups.push(numStr.substring(i, i + 2));
+      }
+      return groups;
+    }
+    function showMultiCard() {
+      const numDigits = parseInt(document.getElementById('multiDigits').value, 10);
+      if (isNaN(numDigits) || numDigits < 1) {
+        alert("Inserisci un numero valido di cifre");
+        return;
+      }
+      currentMultiNumber = generateMultiNumber(numDigits);
+      multiGroups = splitIntoGroups(currentMultiNumber);
+      document.getElementById('multiFlashcard').textContent = currentMultiNumber;
+      document.getElementById('multiAnswer').value = "";
+      document.getElementById('multiFeedback').textContent = "";
+      document.getElementById('multiAnswer').focus();
+    }
+    function checkMultiAnswer() {
+      const userAns = document.getElementById('multiAnswer').value.trim().toLowerCase();
+      const feedbackEl = document.getElementById('multiFeedback');
+      const userWords = userAns.split(/\s+/);
+      let correct = true;
+      let correctAnswers = [];
+      for (let i = 0; i < multiGroups.length; i++) {
+        const group = multiGroups[i];
+        const correctWord = mapping[group] || `[${group}]`;
+        correctAnswers.push(correctWord);
+        if (!userWords[i] || userWords[i].toLowerCase() !== correctWord.toLowerCase()) {
+          correct = false;
+        }
+      }
+      if (correct) {
+        feedbackEl.textContent = "Corretto!";
+        feedbackEl.classList.remove('error');
+        feedbackEl.classList.add('correct');
+      } else {
+        feedbackEl.textContent = `Sbagliato. Le risposte corrette sono: ${correctAnswers.join(' ')}`;
+        feedbackEl.classList.remove('correct');
+        feedbackEl.classList.add('error');
+      }
+    }
+    document.getElementById('multiStartBtn').addEventListener('click', showMultiCard);
+    document.getElementById('multiCheckBtn').addEventListener('click', checkMultiAnswer);
+    document.getElementById('multiNextBtn').addEventListener('click', showMultiCard);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker registrato con successo!'))
+        .catch(err => console.error('Service Worker non registrato:', err));
+    }
+  </script>
+  
+</body>
+</html>
