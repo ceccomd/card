@@ -5,6 +5,7 @@ const CACHE_NAME = 'pwa-cache-v1';
 const CACHE_FILES = [
   './',
   './index.html',
+  './calc.html',  // <- nuovo file
   './manifest.json',
   './styles.css',
   './script.js',
