@@ -5,33 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Calcolatore - Card Fonetica</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0a0c">
+  <meta name="theme-color" content="#58CC02">
   <meta name="description" content="Converti una sequenza di numeri in parole secondo il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Card-Fonetica">
   <link rel="apple-touch-icon" href="card-192.png">
   <link rel="icon" type="image/png" href="card-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
   <link rel="stylesheet" href="styles.css">
   <style>
     .calculator {
       background-color: var(--surface);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 22px;
       width: 100%;
       max-width: 440px;
-      box-shadow: var(--shadow);
-      animation: enter 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+      animation: enter 0.34s cubic-bezier(0.2, 1.4, 0.4, 1);
     }
     @media (min-width: 720px) {
       .calculator { max-width: 480px; padding: 28px; }
     }
+    .calc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .calc-header h1 {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin: 0;
+    }
+    .calc-header .home-btn {
+      background: var(--bg-soft);
+      border: 2px solid var(--border);
+      border-bottom-width: 3px;
+      border-radius: 12px;
+      min-height: 0;
+      padding: 8px 12px;
+      font-size: 1rem;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 800;
+      color: var(--text-soft);
+    }
+    .calc-header .home-btn:active { padding-top: 9px; padding-bottom: 7px; border-bottom-width: 2px; }
     .display {
-      background: linear-gradient(145deg, #000 0%, #0d0d10 100%);
-      border: 1px solid var(--border);
-      color: var(--accent);
+      background: #FFFFFF;
+      border: 2px solid var(--green);
+      border-bottom-width: 4px;
+      border-bottom-color: var(--green-dark);
+      color: var(--green-dark);
       font-size: 1.6rem;
       text-align: right;
       padding: 18px;
@@ -40,9 +70,8 @@
       min-height: 80px;
       word-wrap: break-word;
       overflow-wrap: anywhere;
-      font-weight: 700;
+      font-weight: 900;
       font-variant-numeric: tabular-nums;
-      text-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
       -webkit-user-select: text;
       user-select: text;
       display: flex;
@@ -53,8 +82,16 @@
     .display:empty::before {
       content: "0";
       color: var(--muted);
-      text-shadow: none;
-      opacity: 0.5;
+      opacity: 0.6;
+    }
+    .display.word-result {
+      color: var(--text);
+      border-color: var(--purple);
+      border-bottom-color: var(--purple-dark);
+      font-size: 1.25rem;
+      text-align: center;
+      justify-content: center;
+      letter-spacing: 0;
     }
     .operations, .keys {
       display: grid;
@@ -63,35 +100,42 @@
     }
     .operations { margin-bottom: 10px; }
     .calculator button {
-      padding: 20px 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      min-height: 56px;
+      padding: 18px 0;
+      font-size: 1.3rem;
+      font-weight: 900;
+      min-height: 60px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .calculator button:active {
+      padding-top: 21px;
+      padding-bottom: 15px;
     }
     .calculator button[disabled] {
       background-color: transparent;
       border-color: transparent;
       cursor: default;
+      visibility: hidden;
     }
-    #enter {
-      background-color: var(--accent);
-      color: #001b0a;
-      border-color: transparent;
-      font-weight: 700;
-    }
-    #clear, #delete { color: var(--error); }
+    #clear  { background: #FFE9E9; border-color: #FFC4C4; border-bottom-color: #FF9E9E; color: var(--red-dark); }
+    #delete { background: #FFF4DB; border-color: #FFE08A; border-bottom-color: #E8AE00; color: #8A5C00; }
   </style>
 </head>
 <body>
   <button id="installBtn" class="hidden" type="button" aria-label="Installa applicazione">Installa</button>
 
   <main class="calculator" aria-label="Calcolatore numeri-parole">
+    <div class="calc-header">
+      <h1>🧮 Calcolatore</h1>
+      <button class="home-btn" onclick="window.location.href='index.html'" aria-label="Torna alla home">← Home</button>
+    </div>
+
     <div class="display" id="display" role="status" aria-live="polite" aria-label="Display"></div>
 
     <div class="operations">
       <button id="clear" aria-label="Cancella tutto">C</button>
       <button id="delete" aria-label="Cancella ultimo">⌫</button>
-      <button id="enter" aria-label="Converti">Invio</button>
+      <button id="enter" class="primary" aria-label="Converti">Invio</button>
     </div>
 
     <div class="keys">
@@ -104,7 +148,7 @@
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <button onclick="window.location.href='index.html'" aria-label="Torna alla home">⌂</button>
+      <button disabled aria-hidden="true"></button>
       <button data-value="0">0</button>
       <button disabled aria-hidden="true"></button>
     </div>
@@ -114,19 +158,31 @@
   <script>
     const display = document.getElementById('display');
     let rawInput = "";
+    let showingResult = false;
 
-    function render() { display.textContent = rawInput; }
+    function render() {
+      display.textContent = rawInput;
+      display.classList.toggle('word-result', false);
+      showingResult = false;
+    }
+
+    function resetIfShowingResult() {
+      if (showingResult) {
+        rawInput = "";
+        display.classList.remove('word-result');
+        showingResult = false;
+      }
+    }
 
     document.getElementById('clear').addEventListener('click', () => { rawInput = ""; render(); });
     document.getElementById('delete').addEventListener('click', () => {
-      const text = display.textContent;
-      if (text.includes(' ')) {
+      if (showingResult) {
         rawInput = "";
         render();
-      } else {
-        rawInput = rawInput.slice(0, -1);
-        render();
+        return;
       }
+      rawInput = rawInput.slice(0, -1);
+      render();
     });
     document.getElementById('enter').addEventListener('click', () => {
       if (!rawInput) return;
@@ -136,11 +192,13 @@
         result.push(mapping[num] || `[${num}]`);
       }
       display.textContent = result.join(' ');
+      display.classList.add('word-result');
+      showingResult = true;
     });
 
     document.querySelectorAll('.keys button[data-value]').forEach(button => {
       button.addEventListener('click', () => {
-        if (display.textContent.includes(' ')) rawInput = "";
+        resetIfShowingResult();
         rawInput += button.getAttribute('data-value');
         render();
       });
@@ -148,10 +206,11 @@
 
     document.addEventListener('keydown', e => {
       if (e.key >= '0' && e.key <= '9') {
-        if (display.textContent.includes(' ')) rawInput = "";
+        resetIfShowingResult();
         rawInput += e.key;
         render();
       } else if (e.key === 'Backspace') {
+        if (showingResult) { rawInput = ""; render(); return; }
         rawInput = rawInput.slice(0, -1);
         render();
       } else if (e.key === 'Enter') {

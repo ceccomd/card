@@ -5,49 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Card Fonetica - Allenamento Mnemonico</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0a0a0c">
+  <meta name="theme-color" content="#58CC02">
   <meta name="description" content="Allena la memoria associando numeri a parole con il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Card-Fonetica">
   <link rel="apple-touch-icon" href="card-192.png">
   <link rel="icon" type="image/png" href="card-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
   <link rel="stylesheet" href="styles.css">
   <style>
     .flashcard {
-      background: linear-gradient(145deg, #000 0%, #0d0d10 100%);
-      border: 1px solid var(--border);
+      background: #FFFFFF;
+      border: 2px solid var(--green);
+      border-bottom-width: 4px;
+      border-bottom-color: var(--green-dark);
       border-radius: 18px;
-      padding: 32px 20px;
+      padding: 30px 20px;
       font-size: 3rem;
-      margin: 18px 0;
-      min-height: 110px;
+      margin: 16px 0;
+      min-height: 120px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--accent);
-      text-shadow: 0 0 24px rgba(0, 230, 118, 0.25);
-      transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      color: var(--green-dark);
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.18s cubic-bezier(0.2, 1.4, 0.4, 1);
       user-select: none;
       -webkit-user-select: none;
     }
-    .flashcard.flip { animation: cardFlip 0.32s ease; }
+    .flashcard.flip { animation: cardFlip 0.4s cubic-bezier(0.2, 1.4, 0.4, 1); }
+    .flashcard.win  { animation: cardWin 0.6s cubic-bezier(0.2, 1.4, 0.4, 1); border-color: var(--green); }
+    .flashcard.lose { animation: cardShake 0.45s; border-color: var(--red); border-bottom-color: var(--red-dark); color: var(--red-dark); }
     @keyframes cardFlip {
-      0%   { transform: rotateY(0deg);  opacity: 1; }
-      50%  { transform: rotateY(90deg); opacity: 0.2; }
-      100% { transform: rotateY(0deg);  opacity: 1; }
+      0%   { transform: rotateX(0deg) scale(1); }
+      45%  { transform: rotateX(70deg) scale(0.96); opacity: 0.4; }
+      100% { transform: rotateX(0deg) scale(1); }
     }
+    @keyframes cardWin {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    @keyframes cardShake {
+      0%, 100% { transform: translateX(0); }
+      15%, 55% { transform: translateX(-8px); }
+      30%, 70% { transform: translateX(8px); }
+    }
+
     .feedback {
       margin-top: 12px;
-      font-size: 0.98rem;
-      min-height: 1.4em;
-      font-weight: 500;
+      font-size: 1rem;
+      min-height: 1.5em;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.01em;
     }
-    .feedback.correct { color: var(--success); }
-    .feedback.error   { color: var(--error); }
+    .feedback.correct { color: var(--green-dark); }
+    .feedback.error   { color: var(--red-dark); }
     .feedback.shake   { animation: shake 0.36s; }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -57,40 +77,90 @@
 
     .stats {
       display: flex;
-      justify-content: space-around;
-      margin: 8px 0 4px;
-      padding: 10px 8px;
-      background: var(--surface-2);
+      gap: 8px;
+      margin: 6px 0 12px;
+    }
+    .stats .chip {
+      flex: 1;
+      background: var(--bg-soft);
+      border: 2px solid var(--border);
       border-radius: 12px;
-      font-size: 0.82rem;
-      color: var(--muted);
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .stats .chip-emoji {
+      font-size: 1.1rem;
+      line-height: 1;
     }
     .stats .stat-value {
-      display: block;
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 900;
       color: var(--text);
       font-variant-numeric: tabular-nums;
+      line-height: 1.1;
     }
-    .stats .stat-value.accent { color: var(--accent); }
+    .stats .stat-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .chip.streak { background: #FFF7DB; border-color: #F5E090; }
+    .chip.streak .stat-value { color: #B07C00; }
+    .chip.streak.on-fire { animation: pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1); }
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
 
     .brand {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
-    .brand-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent) 0%, #00a548 100%);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
+    .brand-mascot {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 6px;
+      display: inline-block;
+      animation: bob 3.4s ease-in-out infinite;
+      filter: drop-shadow(0 6px 0 rgba(70, 163, 2, 0.18));
+    }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50%      { transform: translateY(-6px) rotate(3deg); }
+    }
+    .brand h1 {
+      font-size: 1.7rem;
       font-weight: 900;
-      color: #001b0a;
-      margin-bottom: 12px;
-      box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25);
+      color: var(--green-dark);
+      letter-spacing: -0.01em;
+    }
+
+    /* Confetti su streak milestone */
+    .confetti {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .confetti span {
+      position: absolute;
+      top: -20px;
+      width: 10px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0.95;
+      animation: confettiFall 1.4s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(0) rotate(0deg);     opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0.4; }
     }
   </style>
 </head>
@@ -99,25 +169,25 @@
 
   <main id="menu" class="container" aria-labelledby="menu-title">
     <div class="brand">
-      <div class="brand-icon" aria-hidden="true">123</div>
+      <div class="brand-mascot" aria-hidden="true">🦉</div>
       <h1 id="menu-title">Card Fonetica</h1>
-      <p class="subtitle">Allena la memoria con il sistema mnemonico</p>
+      <p class="subtitle">Allena la memoria, accumula streak</p>
     </div>
     <div class="stack">
-      <button id="classicModeBtn" class="primary">Gioco Classico</button>
-      <button id="rangeModeBtn">Gioco Range</button>
-      <button id="multiModeBtn">Gioco Multi-Cifre</button>
-      <button onclick="window.location.href='calc.html'">Calcolatore</button>
+      <button id="classicModeBtn" class="primary">🎯 Gioco Classico</button>
+      <button id="rangeModeBtn" class="blue">🎚️ Gioco Range</button>
+      <button id="multiModeBtn" class="purple">🔢 Multi-Cifre</button>
+      <button class="gold" onclick="window.location.href='calc.html'">🧮 Calcolatore</button>
     </div>
   </main>
 
   <section id="classicGame" class="container hidden" aria-labelledby="classic-title">
-    <h1 id="classic-title">Gioco Classico</h1>
+    <h1 id="classic-title">🎯 Gioco Classico</h1>
     <p class="subtitle">Scrivi la parola corrispondente al numero</p>
     <div class="stats" role="status" aria-live="polite">
-      <div><span class="stat-value" id="classicCorrect">0</span><span>Corrette</span></div>
-      <div><span class="stat-value" id="classicTotal">0</span><span>Totali</span></div>
-      <div><span class="stat-value accent" id="classicStreak">0</span><span>Streak</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">✅</span><span class="stat-value" id="classicCorrect">0</span><span class="stat-label">Corrette</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">📊</span><span class="stat-value" id="classicTotal">0</span><span class="stat-label">Totali</span></div>
+      <div class="chip streak" id="classicStreakChip"><span class="chip-emoji" aria-hidden="true">🔥</span><span class="stat-value" id="classicStreak">0</span><span class="stat-label">Streak</span></div>
     </div>
     <div class="flashcard" id="classicFlashcard" role="img" aria-label="Numero da indovinare"></div>
     <input type="text" id="classicAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
@@ -130,7 +200,7 @@
   </section>
 
   <section id="rangeGame" class="container hidden" aria-labelledby="range-title">
-    <h1 id="range-title">Gioco Range</h1>
+    <h1 id="range-title">🎚️ Gioco Range</h1>
     <p class="subtitle">Limita l'allenamento a un intervallo</p>
     <div class="row">
       <input type="number" id="rangeMin" placeholder="Min" inputmode="numeric" aria-label="Numero minimo">
@@ -138,9 +208,9 @@
     </div>
     <button id="rangeStartBtn" class="primary" style="margin-top:10px;width:100%;">Avvia</button>
     <div class="stats" role="status" aria-live="polite">
-      <div><span class="stat-value" id="rangeCorrect">0</span><span>Corrette</span></div>
-      <div><span class="stat-value" id="rangeTotal">0</span><span>Totali</span></div>
-      <div><span class="stat-value accent" id="rangeStreak">0</span><span>Streak</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">✅</span><span class="stat-value" id="rangeCorrect">0</span><span class="stat-label">Corrette</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">📊</span><span class="stat-value" id="rangeTotal">0</span><span class="stat-label">Totali</span></div>
+      <div class="chip streak" id="rangeStreakChip"><span class="chip-emoji" aria-hidden="true">🔥</span><span class="stat-value" id="rangeStreak">0</span><span class="stat-label">Streak</span></div>
     </div>
     <div class="flashcard" id="rangeFlashcard" role="img" aria-label="Numero da indovinare"></div>
     <input type="text" id="rangeAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
@@ -153,14 +223,14 @@
   </section>
 
   <section id="multiGame" class="container hidden" aria-labelledby="multi-title">
-    <h1 id="multi-title">Gioco Multi-Cifre</h1>
+    <h1 id="multi-title">🔢 Multi-Cifre</h1>
     <p class="subtitle">Scomponi un numero lungo in parole</p>
     <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1" inputmode="numeric" aria-label="Numero di cifre">
     <button id="multiStartBtn" class="primary" style="margin-top:10px;width:100%;">Avvia</button>
     <div class="stats" role="status" aria-live="polite">
-      <div><span class="stat-value" id="multiCorrect">0</span><span>Corrette</span></div>
-      <div><span class="stat-value" id="multiTotal">0</span><span>Totali</span></div>
-      <div><span class="stat-value accent" id="multiStreak">0</span><span>Streak</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">✅</span><span class="stat-value" id="multiCorrect">0</span><span class="stat-label">Corrette</span></div>
+      <div class="chip"><span class="chip-emoji" aria-hidden="true">📊</span><span class="stat-value" id="multiTotal">0</span><span class="stat-label">Totali</span></div>
+      <div class="chip streak" id="multiStreakChip"><span class="chip-emoji" aria-hidden="true">🔥</span><span class="stat-value" id="multiStreak">0</span><span class="stat-label">Streak</span></div>
     </div>
     <div class="flashcard" id="multiFlashcard" role="img" aria-label="Sequenza da decodificare"></div>
     <input type="text" id="multiAnswer" placeholder="Parole separate da spazi" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci le parole">
@@ -180,7 +250,7 @@
     }
 
     function flashCard(el) {
-      el.classList.remove('flip');
+      el.classList.remove('flip', 'win', 'lose');
       void el.offsetWidth;
       el.classList.add('flip');
     }
@@ -191,9 +261,38 @@
       document.getElementById(prefix + 'Streak').textContent = state.streak;
     }
 
-    function setFeedback(el, isCorrect, message) {
+    function setFeedback(el, isCorrect, message, opts) {
       el.textContent = message;
       el.className = 'feedback ' + (isCorrect ? 'correct' : 'error shake');
+      if (opts && opts.flashcard) {
+        opts.flashcard.classList.remove('flip', 'win', 'lose');
+        void opts.flashcard.offsetWidth;
+        opts.flashcard.classList.add(isCorrect ? 'win' : 'lose');
+      }
+      if (opts && opts.streakChip && isCorrect && opts.streak > 0 && opts.streak % 5 === 0) {
+        opts.streakChip.classList.remove('on-fire');
+        void opts.streakChip.offsetWidth;
+        opts.streakChip.classList.add('on-fire');
+        triggerConfetti();
+      }
+    }
+
+    function triggerConfetti() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const colors = ['#58CC02', '#FFC800', '#CE82FF', '#1CB0F6', '#FF4B4B'];
+      const container = document.createElement('div');
+      container.className = 'confetti';
+      container.setAttribute('aria-hidden', 'true');
+      for (let i = 0; i < 28; i++) {
+        const piece = document.createElement('span');
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = (Math.random() * 0.25) + 's';
+        piece.style.animationDuration = (1.0 + Math.random() * 0.9) + 's';
+        container.appendChild(piece);
+      }
+      document.body.appendChild(container);
+      setTimeout(() => container.remove(), 2400);
     }
 
     document.getElementById('classicModeBtn').addEventListener('click', () => {
@@ -239,7 +338,12 @@
       setFeedback(
         document.getElementById('classicFeedback'),
         ok,
-        ok ? "Corretto!" : `Sbagliato. Risposta: ${mapping[currentClassicKey]}`
+        ok ? "Corretto! 🎉" : `Sbagliato 😔 Risposta: ${mapping[currentClassicKey]}`,
+        {
+          flashcard: document.getElementById('classicFlashcard'),
+          streakChip: document.getElementById('classicStreakChip'),
+          streak: classicState.streak
+        }
       );
       updateStats('classic', classicState);
     }
@@ -296,7 +400,12 @@
       setFeedback(
         document.getElementById('rangeFeedback'),
         ok,
-        ok ? "Corretto!" : `Sbagliato. Risposta: ${mapping[currentRangeKey]}`
+        ok ? "Corretto! 🎉" : `Sbagliato 😔 Risposta: ${mapping[currentRangeKey]}`,
+        {
+          flashcard: document.getElementById('rangeFlashcard'),
+          streakChip: document.getElementById('rangeStreakChip'),
+          streak: rangeState.streak
+        }
       );
       updateStats('range', rangeState);
     }
@@ -392,7 +501,12 @@
       setFeedback(
         document.getElementById('multiFeedback'),
         correct,
-        correct ? "Corretto!" : `Sbagliato. Risposte: ${correctAnswers.join(' ')}`
+        correct ? "Corretto! 🎉" : `Sbagliato 😔 Risposte: ${correctAnswers.join(' ')}`,
+        {
+          flashcard: document.getElementById('multiFlashcard'),
+          streakChip: document.getElementById('multiStreakChip'),
+          streak: multiState.streak
+        }
       );
       updateStats('multi', multiState);
     }
