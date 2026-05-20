@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <title>Allenamento Abbinamenti Numeri - Parole</title>
+  <title>Card Fonetica - Allenamento Mnemonico</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0a0a0c">
+  <meta name="description" content="Allena la memoria associando numeri a parole con il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,87 +14,186 @@
   <link rel="apple-touch-icon" href="card-192.png">
   <link rel="icon" type="image/png" href="card-192.png">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .flashcard {
+      background: linear-gradient(145deg, #000 0%, #0d0d10 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px 20px;
+      font-size: 3rem;
+      margin: 18px 0;
+      min-height: 110px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(0, 230, 118, 0.25);
+      transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .flashcard.flip { animation: cardFlip 0.32s ease; }
+    @keyframes cardFlip {
+      0%   { transform: rotateY(0deg);  opacity: 1; }
+      50%  { transform: rotateY(90deg); opacity: 0.2; }
+      100% { transform: rotateY(0deg);  opacity: 1; }
+    }
+    .feedback {
+      margin-top: 12px;
+      font-size: 0.98rem;
+      min-height: 1.4em;
+      font-weight: 500;
+    }
+    .feedback.correct { color: var(--success); }
+    .feedback.error   { color: var(--error); }
+    .feedback.shake   { animation: shake 0.36s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 8px 0 4px;
+      padding: 10px 8px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .stats .stat-value {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .stats .stat-value.accent { color: var(--accent); }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent) 0%, #00a548 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #001b0a;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 20px rgba(0, 230, 118, 0.25);
+    }
+  </style>
 </head>
 <body>
-  <button id="installBtn" class="hidden" type="button">Installa app</button>
+  <button id="installBtn" class="hidden" type="button" aria-label="Installa applicazione">Installa</button>
 
-  <div id="menu" class="container">
-    <h1>Allenamento Abbinamenti</h1>
-    <div class="menu-buttons" style="display:flex;flex-direction:column;gap:10px;">
-      <button id="classicModeBtn">Gioco Classico</button>
+  <main id="menu" class="container" aria-labelledby="menu-title">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">123</div>
+      <h1 id="menu-title">Card Fonetica</h1>
+      <p class="subtitle">Allena la memoria con il sistema mnemonico</p>
+    </div>
+    <div class="stack">
+      <button id="classicModeBtn" class="primary">Gioco Classico</button>
       <button id="rangeModeBtn">Gioco Range</button>
       <button id="multiModeBtn">Gioco Multi-Cifre</button>
       <button onclick="window.location.href='calc.html'">Calcolatore</button>
     </div>
-  </div>
+  </main>
 
-  <div id="classicGame" class="container hidden">
-    <h1>Gioco Classico</h1>
-    <div class="flashcard" id="classicFlashcard"></div>
-    <input type="text" id="classicAnswer" placeholder="Inserisci la parola" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button id="classicCheckBtn" style="flex:1;">Controlla</button>
-      <button id="classicNextBtn" style="flex:1;">Prossimo</button>
+  <section id="classicGame" class="container hidden" aria-labelledby="classic-title">
+    <h1 id="classic-title">Gioco Classico</h1>
+    <p class="subtitle">Scrivi la parola corrispondente al numero</p>
+    <div class="stats" role="status" aria-live="polite">
+      <div><span class="stat-value" id="classicCorrect">0</span><span>Corrette</span></div>
+      <div><span class="stat-value" id="classicTotal">0</span><span>Totali</span></div>
+      <div><span class="stat-value accent" id="classicStreak">0</span><span>Streak</span></div>
     </div>
-    <div class="feedback" id="classicFeedback"></div>
-    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
-  </div>
+    <div class="flashcard" id="classicFlashcard" role="img" aria-label="Numero da indovinare"></div>
+    <input type="text" id="classicAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
+    <div class="row" style="margin-top:10px;">
+      <button id="classicCheckBtn" class="primary">Controlla</button>
+      <button id="classicNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="classicFeedback" role="status" aria-live="polite"></div>
+    <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
+  </section>
 
-  <div id="rangeGame" class="container hidden">
-    <h1>Gioco Range</h1>
-    <div style="display:flex;gap:8px;">
-      <input type="number" id="rangeMin" placeholder="Min" inputmode="numeric">
-      <input type="number" id="rangeMax" placeholder="Max" inputmode="numeric">
+  <section id="rangeGame" class="container hidden" aria-labelledby="range-title">
+    <h1 id="range-title">Gioco Range</h1>
+    <p class="subtitle">Limita l'allenamento a un intervallo</p>
+    <div class="row">
+      <input type="number" id="rangeMin" placeholder="Min" inputmode="numeric" aria-label="Numero minimo">
+      <input type="number" id="rangeMax" placeholder="Max" inputmode="numeric" aria-label="Numero massimo">
     </div>
-    <button id="rangeStartBtn" style="margin-top:8px;">Avvia</button>
-    <div class="flashcard" id="rangeFlashcard"></div>
-    <input type="text" id="rangeAnswer" placeholder="Inserisci la parola" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button id="rangeCheckBtn" style="flex:1;">Controlla</button>
-      <button id="rangeNextBtn" style="flex:1;">Prossimo</button>
+    <button id="rangeStartBtn" class="primary" style="margin-top:10px;width:100%;">Avvia</button>
+    <div class="stats" role="status" aria-live="polite">
+      <div><span class="stat-value" id="rangeCorrect">0</span><span>Corrette</span></div>
+      <div><span class="stat-value" id="rangeTotal">0</span><span>Totali</span></div>
+      <div><span class="stat-value accent" id="rangeStreak">0</span><span>Streak</span></div>
     </div>
-    <div class="feedback" id="rangeFeedback"></div>
-    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
-  </div>
+    <div class="flashcard" id="rangeFlashcard" role="img" aria-label="Numero da indovinare"></div>
+    <input type="text" id="rangeAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
+    <div class="row" style="margin-top:10px;">
+      <button id="rangeCheckBtn" class="primary">Controlla</button>
+      <button id="rangeNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="rangeFeedback" role="status" aria-live="polite"></div>
+    <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
+  </section>
 
-  <div id="multiGame" class="container hidden">
-    <h1>Gioco Multi-Cifre</h1>
-    <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1" inputmode="numeric">
-    <button id="multiStartBtn" style="margin-top:8px;">Avvia</button>
-    <div class="flashcard" id="multiFlashcard"></div>
-    <input type="text" id="multiAnswer" placeholder="Parole separate da spazi" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button id="multiCheckBtn" style="flex:1;">Controlla</button>
-      <button id="multiNextBtn" style="flex:1;">Prossimo</button>
+  <section id="multiGame" class="container hidden" aria-labelledby="multi-title">
+    <h1 id="multi-title">Gioco Multi-Cifre</h1>
+    <p class="subtitle">Scomponi un numero lungo in parole</p>
+    <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1" inputmode="numeric" aria-label="Numero di cifre">
+    <button id="multiStartBtn" class="primary" style="margin-top:10px;width:100%;">Avvia</button>
+    <div class="stats" role="status" aria-live="polite">
+      <div><span class="stat-value" id="multiCorrect">0</span><span>Corrette</span></div>
+      <div><span class="stat-value" id="multiTotal">0</span><span>Totali</span></div>
+      <div><span class="stat-value accent" id="multiStreak">0</span><span>Streak</span></div>
     </div>
-    <div class="feedback" id="multiFeedback"></div>
-    <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
-  </div>
-
-  <style>
-    .flashcard {
-      background-color: #000;
-      border-radius: 12px;
-      padding: 24px;
-      font-size: 2.5em;
-      margin: 14px 0;
-      min-height: 80px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .feedback { margin-top: 12px; font-size: 1em; min-height: 1.2em; }
-    .feedback.correct { color: var(--success); }
-    .feedback.error { color: var(--error); }
-  </style>
+    <div class="flashcard" id="multiFlashcard" role="img" aria-label="Sequenza da decodificare"></div>
+    <input type="text" id="multiAnswer" placeholder="Parole separate da spazi" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci le parole">
+    <div class="row" style="margin-top:10px;">
+      <button id="multiCheckBtn" class="primary">Controlla</button>
+      <button id="multiNextBtn">Prossimo</button>
+    </div>
+    <div class="feedback" id="multiFeedback" role="status" aria-live="polite"></div>
+    <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
+  </section>
 
   <script src="mapping.js"></script>
   <script>
     function showSection(sectionId) {
       document.querySelectorAll('.container').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    function flashCard(el) {
+      el.classList.remove('flip');
+      void el.offsetWidth;
+      el.classList.add('flip');
+    }
+
+    function updateStats(prefix, state) {
+      document.getElementById(prefix + 'Correct').textContent = state.correct;
+      document.getElementById(prefix + 'Total').textContent = state.total;
+      document.getElementById(prefix + 'Streak').textContent = state.streak;
+    }
+
+    function setFeedback(el, isCorrect, message) {
+      el.textContent = message;
+      el.className = 'feedback ' + (isCorrect ? 'correct' : 'error shake');
     }
 
     document.getElementById('classicModeBtn').addEventListener('click', () => {
@@ -110,74 +210,95 @@
     });
 
     // --- Gioco Classico ---
+    const classicState = { correct: 0, total: 0, streak: 0, answered: false };
     let currentClassicKey = "";
     const classicKeys = Object.keys(mapping);
+
     function showClassicCard() {
       currentClassicKey = classicKeys[Math.floor(Math.random() * classicKeys.length)];
-      document.getElementById('classicFlashcard').textContent = currentClassicKey;
+      const card = document.getElementById('classicFlashcard');
+      card.textContent = currentClassicKey;
+      flashCard(card);
       document.getElementById('classicAnswer').value = "";
-      document.getElementById('classicFeedback').textContent = "";
-      document.getElementById('classicFeedback').className = "feedback";
+      const fb = document.getElementById('classicFeedback');
+      fb.textContent = "";
+      fb.className = "feedback";
+      classicState.answered = false;
       document.getElementById('classicAnswer').focus();
     }
     function checkClassicAnswer() {
+      if (classicState.answered) return;
       const userAns = document.getElementById('classicAnswer').value.trim().toLowerCase();
+      if (!userAns) return;
       const correctAns = mapping[currentClassicKey].toLowerCase();
-      const feedbackEl = document.getElementById('classicFeedback');
-      if (userAns === correctAns) {
-        feedbackEl.textContent = "Corretto!";
-        feedbackEl.className = "feedback correct";
-      } else {
-        feedbackEl.textContent = `Sbagliato. Risposta: ${mapping[currentClassicKey]}`;
-        feedbackEl.className = "feedback error";
-      }
+      const ok = userAns === correctAns;
+      classicState.total++;
+      if (ok) { classicState.correct++; classicState.streak++; }
+      else    { classicState.streak = 0; }
+      classicState.answered = true;
+      setFeedback(
+        document.getElementById('classicFeedback'),
+        ok,
+        ok ? "Corretto!" : `Sbagliato. Risposta: ${mapping[currentClassicKey]}`
+      );
+      updateStats('classic', classicState);
     }
     document.getElementById('classicCheckBtn').addEventListener('click', checkClassicAnswer);
     document.getElementById('classicNextBtn').addEventListener('click', showClassicCard);
     document.getElementById('classicAnswer').addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        if (document.getElementById('classicFeedback').textContent) showClassicCard();
-        else checkClassicAnswer();
-      }
+      if (e.key === 'Enter') classicState.answered ? showClassicCard() : checkClassicAnswer();
     });
 
     // --- Gioco Range ---
+    const rangeState = { correct: 0, total: 0, streak: 0, answered: false };
     let rangeKeys = [];
     let currentRangeKey = "";
+
     function resetRangeGame() {
       document.getElementById('rangeMin').value = "";
       document.getElementById('rangeMax').value = "";
       document.getElementById('rangeFlashcard').textContent = "";
       document.getElementById('rangeFeedback').textContent = "";
+      document.getElementById('rangeFeedback').className = "feedback";
       document.getElementById('rangeAnswer').value = "";
       rangeKeys = [];
+      rangeState.correct = rangeState.total = rangeState.streak = 0;
+      rangeState.answered = false;
+      updateStats('range', rangeState);
     }
     function showRangeCard() {
       const flashcardEl = document.getElementById('rangeFlashcard');
       const feedbackEl = document.getElementById('rangeFeedback');
       if (rangeKeys.length === 0) {
-        flashcardEl.textContent = "Nessun numero in questo intervallo!";
+        flashcardEl.textContent = "Nessun numero in questo intervallo";
         feedbackEl.textContent = "";
         return;
       }
       currentRangeKey = rangeKeys[Math.floor(Math.random() * rangeKeys.length)];
       flashcardEl.textContent = currentRangeKey;
+      flashCard(flashcardEl);
       document.getElementById('rangeAnswer').value = "";
       feedbackEl.textContent = "";
       feedbackEl.className = "feedback";
+      rangeState.answered = false;
       document.getElementById('rangeAnswer').focus();
     }
     function checkRangeAnswer() {
+      if (rangeState.answered || rangeKeys.length === 0) return;
       const userAns = document.getElementById('rangeAnswer').value.trim().toLowerCase();
+      if (!userAns) return;
       const correctAns = mapping[currentRangeKey].toLowerCase();
-      const feedbackEl = document.getElementById('rangeFeedback');
-      if (userAns === correctAns) {
-        feedbackEl.textContent = "Corretto!";
-        feedbackEl.className = "feedback correct";
-      } else {
-        feedbackEl.textContent = `Sbagliato. Risposta: ${mapping[currentRangeKey]}`;
-        feedbackEl.className = "feedback error";
-      }
+      const ok = userAns === correctAns;
+      rangeState.total++;
+      if (ok) { rangeState.correct++; rangeState.streak++; }
+      else    { rangeState.streak = 0; }
+      rangeState.answered = true;
+      setFeedback(
+        document.getElementById('rangeFeedback'),
+        ok,
+        ok ? "Corretto!" : `Sbagliato. Risposta: ${mapping[currentRangeKey]}`
+      );
+      updateStats('range', rangeState);
     }
     document.getElementById('rangeStartBtn').addEventListener('click', () => {
       const minVal = parseInt(document.getElementById('rangeMin').value, 10);
@@ -190,27 +311,32 @@
         const n = parseInt(key, 10);
         return !isNaN(n) && n >= minVal && n <= maxVal;
       });
+      rangeState.correct = rangeState.total = rangeState.streak = 0;
+      updateStats('range', rangeState);
       showRangeCard();
     });
     document.getElementById('rangeCheckBtn').addEventListener('click', checkRangeAnswer);
     document.getElementById('rangeNextBtn').addEventListener('click', showRangeCard);
     document.getElementById('rangeAnswer').addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        if (document.getElementById('rangeFeedback').textContent) showRangeCard();
-        else checkRangeAnswer();
-      }
+      if (e.key === 'Enter') rangeState.answered ? showRangeCard() : checkRangeAnswer();
     });
 
     // --- Gioco Multi-Cifre ---
+    const multiState = { correct: 0, total: 0, streak: 0, answered: false };
     let currentMultiNumber = "";
     let multiGroups = [];
+
     function resetMultiGame() {
       document.getElementById('multiDigits').value = "";
       document.getElementById('multiFlashcard').textContent = "";
       document.getElementById('multiFeedback').textContent = "";
+      document.getElementById('multiFeedback').className = "feedback";
       document.getElementById('multiAnswer').value = "";
       currentMultiNumber = "";
       multiGroups = [];
+      multiState.correct = multiState.total = multiState.streak = 0;
+      multiState.answered = false;
+      updateStats('multi', multiState);
     }
     function generateMultiNumber(numDigits) {
       let result = "";
@@ -234,15 +360,20 @@
       }
       currentMultiNumber = generateMultiNumber(numDigits);
       multiGroups = splitIntoGroups(currentMultiNumber);
-      document.getElementById('multiFlashcard').textContent = currentMultiNumber;
+      const card = document.getElementById('multiFlashcard');
+      card.textContent = currentMultiNumber;
+      flashCard(card);
       document.getElementById('multiAnswer').value = "";
-      document.getElementById('multiFeedback').textContent = "";
-      document.getElementById('multiFeedback').className = "feedback";
+      const fb = document.getElementById('multiFeedback');
+      fb.textContent = "";
+      fb.className = "feedback";
+      multiState.answered = false;
       document.getElementById('multiAnswer').focus();
     }
     function checkMultiAnswer() {
+      if (multiState.answered || multiGroups.length === 0) return;
       const userAns = document.getElementById('multiAnswer').value.trim().toLowerCase();
-      const feedbackEl = document.getElementById('multiFeedback');
+      if (!userAns) return;
       const userWords = userAns.split(/\s+/);
       let correct = true;
       const correctAnswers = [];
@@ -254,25 +385,25 @@
           correct = false;
         }
       }
-      if (correct) {
-        feedbackEl.textContent = "Corretto!";
-        feedbackEl.className = "feedback correct";
-      } else {
-        feedbackEl.textContent = `Sbagliato. Risposte: ${correctAnswers.join(' ')}`;
-        feedbackEl.className = "feedback error";
-      }
+      multiState.total++;
+      if (correct) { multiState.correct++; multiState.streak++; }
+      else         { multiState.streak = 0; }
+      multiState.answered = true;
+      setFeedback(
+        document.getElementById('multiFeedback'),
+        correct,
+        correct ? "Corretto!" : `Sbagliato. Risposte: ${correctAnswers.join(' ')}`
+      );
+      updateStats('multi', multiState);
     }
     document.getElementById('multiStartBtn').addEventListener('click', showMultiCard);
     document.getElementById('multiCheckBtn').addEventListener('click', checkMultiAnswer);
     document.getElementById('multiNextBtn').addEventListener('click', showMultiCard);
     document.getElementById('multiAnswer').addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        if (document.getElementById('multiFeedback').textContent) showMultiCard();
-        else checkMultiAnswer();
-      }
+      if (e.key === 'Enter') multiState.answered ? showMultiCard() : checkMultiAnswer();
     });
 
-    // Deep link per gli shortcut PWA: ?mode=classic|range|multi
+    // Deep link per gli shortcut PWA
     const params = new URLSearchParams(location.search);
     const mode = params.get('mode');
     if (mode === 'classic') { showSection('classicGame'); showClassicCard(); }

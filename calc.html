@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <title>Calcolatrice Mappa Numeri-Parole</title>
+  <title>Calcolatore - Card Fonetica</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0a0a0c">
+  <meta name="description" content="Converti una sequenza di numeri in parole secondo il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,57 +17,84 @@
   <style>
     .calculator {
       background-color: var(--surface);
-      border-radius: var(--radius);
-      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
       width: 100%;
-      max-width: 360px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      max-width: 440px;
+      box-shadow: var(--shadow);
+      animation: enter 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+    @media (min-width: 720px) {
+      .calculator { max-width: 480px; padding: 28px; }
     }
     .display {
-      background-color: #000;
+      background: linear-gradient(145deg, #000 0%, #0d0d10 100%);
+      border: 1px solid var(--border);
       color: var(--accent);
-      font-size: 1.8em;
+      font-size: 1.6rem;
       text-align: right;
-      padding: 14px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      min-height: 60px;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      min-height: 80px;
       word-wrap: break-word;
-      font-weight: 600;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
       -webkit-user-select: text;
       user-select: text;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      letter-spacing: 0.02em;
     }
-    .operations, .buttons {
+    .display:empty::before {
+      content: "0";
+      color: var(--muted);
+      text-shadow: none;
+      opacity: 0.5;
+    }
+    .operations, .keys {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
     .operations { margin-bottom: 10px; }
     .calculator button {
-      padding: 18px;
-      font-size: 1.2em;
+      padding: 20px 0;
+      font-size: 1.25rem;
       font-weight: 600;
+      min-height: 56px;
     }
     .calculator button[disabled] {
       background-color: transparent;
+      border-color: transparent;
       cursor: default;
     }
-    #enter { background-color: var(--accent); color: #000; }
+    #enter {
+      background-color: var(--accent);
+      color: #001b0a;
+      border-color: transparent;
+      font-weight: 700;
+    }
+    #clear, #delete { color: var(--error); }
   </style>
 </head>
 <body>
-  <button id="installBtn" class="hidden" type="button">Installa app</button>
+  <button id="installBtn" class="hidden" type="button" aria-label="Installa applicazione">Installa</button>
 
-  <div class="calculator">
-    <div class="display" id="display"></div>
+  <main class="calculator" aria-label="Calcolatore numeri-parole">
+    <div class="display" id="display" role="status" aria-live="polite" aria-label="Display"></div>
 
     <div class="operations">
-      <button id="clear">C</button>
-      <button id="delete">⌫</button>
-      <button id="enter">Invio</button>
+      <button id="clear" aria-label="Cancella tutto">C</button>
+      <button id="delete" aria-label="Cancella ultimo">⌫</button>
+      <button id="enter" aria-label="Converti">Invio</button>
     </div>
 
-    <div class="buttons">
+    <div class="keys">
       <button data-value="7">7</button>
       <button data-value="8">8</button>
       <button data-value="9">9</button>
@@ -76,34 +104,62 @@
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <button onclick="window.location.href='index.html'">⌂ Home</button>
+      <button onclick="window.location.href='index.html'" aria-label="Torna alla home">⌂</button>
       <button data-value="0">0</button>
-      <button disabled></button>
+      <button disabled aria-hidden="true"></button>
     </div>
-  </div>
+  </main>
 
   <script src="mapping.js"></script>
   <script>
     const display = document.getElementById('display');
+    let rawInput = "";
 
-    function updateDisplay(value) { display.textContent = value; }
+    function render() { display.textContent = rawInput; }
 
-    document.getElementById('clear').addEventListener('click', () => updateDisplay(''));
-    document.getElementById('delete').addEventListener('click', () => updateDisplay(display.textContent.slice(0, -1)));
+    document.getElementById('clear').addEventListener('click', () => { rawInput = ""; render(); });
+    document.getElementById('delete').addEventListener('click', () => {
+      const text = display.textContent;
+      if (text.includes(' ')) {
+        rawInput = "";
+        render();
+      } else {
+        rawInput = rawInput.slice(0, -1);
+        render();
+      }
+    });
     document.getElementById('enter').addEventListener('click', () => {
-      const input = display.textContent;
+      if (!rawInput) return;
       const result = [];
-      for (let i = 0; i < input.length; i += 2) {
-        const num = input.substring(i, i + 2);
+      for (let i = 0; i < rawInput.length; i += 2) {
+        const num = rawInput.substring(i, i + 2);
         result.push(mapping[num] || `[${num}]`);
       }
-      updateDisplay(result.join(' '));
+      display.textContent = result.join(' ');
     });
 
-    document.querySelectorAll('.buttons button[data-value]').forEach(button => {
+    document.querySelectorAll('.keys button[data-value]').forEach(button => {
       button.addEventListener('click', () => {
-        updateDisplay(display.textContent + button.getAttribute('data-value'));
+        if (display.textContent.includes(' ')) rawInput = "";
+        rawInput += button.getAttribute('data-value');
+        render();
       });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') {
+        if (display.textContent.includes(' ')) rawInput = "";
+        rawInput += e.key;
+        render();
+      } else if (e.key === 'Backspace') {
+        rawInput = rawInput.slice(0, -1);
+        render();
+      } else if (e.key === 'Enter') {
+        document.getElementById('enter').click();
+      } else if (e.key === 'Escape') {
+        rawInput = "";
+        render();
+      }
     });
   </script>
   <script src="pwa.js"></script>
