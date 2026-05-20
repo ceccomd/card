@@ -2,268 +2,166 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#000000">
-  <title>Calcolatrice Mappa Numeri-Parole</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Calcolatore - Card Fonetica</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0c">
+  <meta name="description" content="Converti una sequenza di numeri in parole secondo il sistema mnemonico fonetico.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Card-Fonetica">
+  <link rel="apple-touch-icon" href="card-192.png">
+  <link rel="icon" type="image/png" href="card-192.png">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    /* Grafica in stile iPhone */
-    html, body {
-      touch-action: manipulation;
-    }
-    body {
-      background-color: #000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
     .calculator {
-      background-color: #333;
-      border-radius: 20px;
-      padding: 20px;
-      width: 320px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow);
+      animation: enter 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+    @media (min-width: 720px) {
+      .calculator { max-width: 480px; padding: 28px; }
     }
     .display {
-      background-color: #000;
-      color: #0f0;
-      font-size: 2em;
+      background: linear-gradient(145deg, #000 0%, #0d0d10 100%);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 1.6rem;
       text-align: right;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      min-height: 50px;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      min-height: 80px;
       word-wrap: break-word;
+      overflow-wrap: anywhere;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
+      -webkit-user-select: text;
+      user-select: text;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      letter-spacing: 0.02em;
     }
-    /* Riga operativa in alto */
-    .operations {
+    .display:empty::before {
+      content: "0";
+      color: var(--muted);
+      text-shadow: none;
+      opacity: 0.5;
+    }
+    .operations, .keys {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      margin-bottom: 10px;
     }
-    /* Griglia dei tasti numerici */
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+    .operations { margin-bottom: 10px; }
+    .calculator button {
+      padding: 20px 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      min-height: 56px;
     }
-    button {
-      background-color: #666;
-      border: none;
-      border-radius: 10px;
-      padding: 20px;
-      font-size: 1.2em;
-      color: #fff;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:active {
-      background-color: #888;
-    }
-    /* I pulsanti disabilitati (vuoti) non sono cliccabili */
-    button[disabled] {
+    .calculator button[disabled] {
       background-color: transparent;
+      border-color: transparent;
       cursor: default;
     }
+    #enter {
+      background-color: var(--accent);
+      color: #001b0a;
+      border-color: transparent;
+      font-weight: 700;
+    }
+    #clear, #delete { color: var(--error); }
   </style>
 </head>
 <body>
-  <div class="calculator">
-    <!-- Display -->
-    <div class="display" id="display"></div>
-    
-    <!-- Riga operativa: C, ⌫, Invio -->
+  <button id="installBtn" class="hidden" type="button" aria-label="Installa applicazione">Installa</button>
+
+  <main class="calculator" aria-label="Calcolatore numeri-parole">
+    <div class="display" id="display" role="status" aria-live="polite" aria-label="Display"></div>
+
     <div class="operations">
-      <button id="clear">C</button>
-      <button id="delete">⌫</button>
-      <button id="enter">Invio</button>
+      <button id="clear" aria-label="Cancella tutto">C</button>
+      <button id="delete" aria-label="Cancella ultimo">⌫</button>
+      <button id="enter" aria-label="Converti">Invio</button>
     </div>
-    
-    <!-- Griglia dei tasti numerici: 4 righe a 3 colonne -->
-    <div class="buttons">
-      <!-- Riga 1: 7, 8, 9 -->
+
+    <div class="keys">
       <button data-value="7">7</button>
       <button data-value="8">8</button>
       <button data-value="9">9</button>
-      <!-- Riga 2: 4, 5, 6 -->
       <button data-value="4">4</button>
       <button data-value="5">5</button>
       <button data-value="6">6</button>
-      <!-- Riga 3: 1, 2, 3 -->
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <!-- Riga 4: pulsante vuoto, 0, pulsante vuoto -->
-      <button onclick="window.location.href='index.html'">⌂ Home</button>
+      <button onclick="window.location.href='index.html'" aria-label="Torna alla home">⌂</button>
       <button data-value="0">0</button>
-      <button disabled></button>
+      <button disabled aria-hidden="true"></button>
     </div>
-  </div>
+  </main>
 
+  <script src="mapping.js"></script>
   <script>
-    // Mappatura: definizione delle coppie numero-parola
-    const mapping = {
-      "0": "Osso",
-      "00": "sasso",
-      "01": "seta",
-      "02": "seno",
-      "03": "Summa",
-      "04": "Sara",
-      "05": "Sale",
-      "06": "sci",
-      "07": "Sacco",
-      "08": "Sofia",
-      "09": "Seppia",
-      "1": "The",
-      "2": "Noè",
-      "3": "Amo",
-      "4": "Re",
-      "5": "Ali",
-      "6": "Ciao",
-      "7": "Oca",
-      "8": "Ufo",
-      "9": "Boa",
-      "10": "Tazza",
-      "11": "Tetto",
-      "12": "Dino",
-      "13": "Dama",
-      "14": "Torre",
-      "15": "Tela",
-      "16": "Doccia",
-      "17": "Tacco",
-      "18": "TV",
-      "19": "Tappo",
-      "20": "Naso",
-      "21": "Nido",
-      "22": "Nonno",
-      "23": "Nemo",
-      "24": "Nero",
-      "25": "Anello",
-      "26": "Noce",
-      "27": "Nek",
-      "28": "Nave",
-      "29": "Nebbia",
-      "30": "Mazza",
-      "31": "Moto",
-      "32": "Mina",
-      "33": "Mamma",
-      "34": "Mare",
-      "35": "Mela",
-      "36": "Micio",
-      "37": "Moca",
-      "38": "Muffa",
-      "39": "Mappa",
-      "40": "Razzo",
-      "41": "Ruota",
-      "42": "Rana",
-      "43": "Remo",
-      "44": "Rara",
-      "45": "Rullo",
-      "46": "Roccia",
-      "47": "Roki",
-      "48": "Rovo",
-      "49": "Arpa",
-      "50": "Lazzo",
-      "51": "Latte",
-      "52": "Luna",
-      "53": "Lima",
-      "54": "Lara",
-      "55": "Lollo",
-      "56": "Lucio",
-      "57": "Lacca",
-      "58": "Lava",
-      "59": "Lupo",
-      "60": "Cesso",
-      "61": "Cita",
-      "62": "J.Cena",
-      "63": "Gemma",
-      "64": "Cero",
-      "65": "Gel",
-      "66": "Gigio",
-      "67": "Giacca",
-      "68": "Ciuffo",
-      "69": "Geep",
-      "70": "Cazzo",
-      "71": "Gatto",
-      "72": "Cane",
-      "73": "Gomma",
-      "74": "Carro",
-      "75": "Colla",
-      "76": "Goccia",
-      "77": "Cacca",
-      "78": "Gufo",
-      "79": "Coppa",
-      "80": "Vaso",
-      "81": "Vite",
-      "82": "Vino",
-      "83": "Fiamma",
-      "84": "Faro",
-      "85": "Vela",
-      "86": "Faccia Pok.Face",
-      "87": "Foca",
-      "88": "Fava",
-      "89": "Fibbia",
-      "90": "Pizza",
-      "91": "Botte",
-      "92": "Pane",
-      "93": "Puma",
-      "94": "Pera",
-      "95": "Palla",
-      "96": "Bocce",
-      "97": "Pacco",
-      "98": "Puffo",
-      "99": "Pippo"
-    };
-
     const display = document.getElementById('display');
-    const opButtons = document.querySelectorAll('.operations button');
-    const numButtons = document.querySelectorAll('.buttons button');
+    let rawInput = "";
 
-    // Funzione per aggiornare il display
-    function updateDisplay(value) {
-      display.textContent = value;
-    }
+    function render() { display.textContent = rawInput; }
 
-    // Operazioni: C, ⌫, Invio
-    opButtons.forEach(button => {
+    document.getElementById('clear').addEventListener('click', () => { rawInput = ""; render(); });
+    document.getElementById('delete').addEventListener('click', () => {
+      const text = display.textContent;
+      if (text.includes(' ')) {
+        rawInput = "";
+        render();
+      } else {
+        rawInput = rawInput.slice(0, -1);
+        render();
+      }
+    });
+    document.getElementById('enter').addEventListener('click', () => {
+      if (!rawInput) return;
+      const result = [];
+      for (let i = 0; i < rawInput.length; i += 2) {
+        const num = rawInput.substring(i, i + 2);
+        result.push(mapping[num] || `[${num}]`);
+      }
+      display.textContent = result.join(' ');
+    });
+
+    document.querySelectorAll('.keys button[data-value]').forEach(button => {
       button.addEventListener('click', () => {
-        const id = button.id;
-        if (id === 'clear') {
-          // Cancella tutto
-          updateDisplay('');
-        } else if (id === 'delete') {
-          // Cancella l'ultimo carattere
-          updateDisplay(display.textContent.slice(0, -1));
-        } else if (id === 'enter') {
-          // Conversione: suddivide il contenuto in gruppi di due cifre e sostituisce con la parola corrispondente
-          const input = display.textContent;
-          let result = [];
-          for (let i = 0; i < input.length; i += 2) {
-            let num = input.substring(i, i + 2);
-            let word = mapping[num];
-            if (!word) {
-              word = `[${num}]`;
-            }
-            result.push(word);
-          }
-          updateDisplay(result.join(' '));
-        }
+        if (display.textContent.includes(' ')) rawInput = "";
+        rawInput += button.getAttribute('data-value');
+        render();
       });
     });
 
-    // Tasti numerici: aggiunge il valore cliccato al display
-    numButtons.forEach(button => {
-      if (!button.disabled) {
-        button.addEventListener('click', () => {
-          const value = button.getAttribute('data-value');
-          updateDisplay(display.textContent + value);
-        });
+    document.addEventListener('keydown', e => {
+      if (e.key >= '0' && e.key <= '9') {
+        if (display.textContent.includes(' ')) rawInput = "";
+        rawInput += e.key;
+        render();
+      } else if (e.key === 'Backspace') {
+        rawInput = rawInput.slice(0, -1);
+        render();
+      } else if (e.key === 'Enter') {
+        document.getElementById('enter').click();
+      } else if (e.key === 'Escape') {
+        rawInput = "";
+        render();
       }
     });
   </script>
+  <script src="pwa.js"></script>
 </body>
 </html>
-
