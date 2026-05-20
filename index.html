@@ -1,112 +1,25 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Allenamento Abbinamenti Numeri - Parole</title>
-  <style>
-    /* Stili comuni */
-    html, body {
-      touch-action: manipulation;
-    }
-    body {
-      background-color: #000;
-      color: #0f0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      background-color: #333;
-      border-radius: 20px;
-      padding: 20px;
-      width: 320px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      text-align: center;
-    }
-    h1 {
-      font-size: 1.5em;
-      margin-bottom: 20px;
-    }
-    /* Sezione menu */
-    #menu h1 {
-      color: #0f0; /* Titolo in verde */
-    }
-    .menu-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .menu-buttons button {
-      margin: 10px 0; /* Spazio tra un pulsante e l'altro */
-    }
-    /* Bottoni, input, ecc. */
-    button {
-      background-color: #666;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 15px;
-      font-size: 1em;
-      color: #fff;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #888;
-    }
-    input[type="text"],
-    input[type="number"] {
-      padding: 8px;
-      font-size: 1em;
-      border-radius: 5px;
-      border: none;
-      text-align: center;
-      width: 80%;
-      margin: 5px 0;
-    }
-    .flashcard {
-      background-color: #000;
-      border-radius: 10px;
-      padding: 20px;
-      font-size: 2.5em;
-      margin-bottom: 20px;
-      min-height: 70px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .feedback {
-      margin-top: 10px;
-      font-size: 1.1em;
-    }
-    /* Classi per feedback */
-    .correct {
-      color: lime;
-    }
-    .error {
-      color: red;
-    }
-    /* Nasconde le sezioni non attive */
-    .hidden {
-      display: none;
-    }
-    /* Pulsante "Torna al menu" */
-    .back-btn {
-      background-color: #444;
-      margin-top: 20px;
-    }
-  </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Card-Fonetica">
+  <link rel="apple-touch-icon" href="card-192.png">
+  <link rel="icon" type="image/png" href="card-192.png">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Menu principale -->
+  <button id="installBtn" class="hidden" type="button">Installa app</button>
+
   <div id="menu" class="container">
     <h1>Allenamento Abbinamenti</h1>
-    <div class="menu-buttons">
+    <div class="menu-buttons" style="display:flex;flex-direction:column;gap:10px;">
       <button id="classicModeBtn">Gioco Classico</button>
       <button id="rangeModeBtn">Gioco Range</button>
       <button id="multiModeBtn">Gioco Multi-Cifre</button>
@@ -114,179 +27,75 @@
     </div>
   </div>
 
-  <!-- Gioco Classico -->
   <div id="classicGame" class="container hidden">
     <h1>Gioco Classico</h1>
     <div class="flashcard" id="classicFlashcard"></div>
-    <input type="text" id="classicAnswer" placeholder="Inserisci la parola">
-    <div>
-      <button id="classicCheckBtn">Controlla</button>
-      <button id="classicNextBtn">Prossimo</button>
+    <input type="text" id="classicAnswer" placeholder="Inserisci la parola" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="classicCheckBtn" style="flex:1;">Controlla</button>
+      <button id="classicNextBtn" style="flex:1;">Prossimo</button>
     </div>
     <div class="feedback" id="classicFeedback"></div>
     <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
   </div>
 
-  <!-- Gioco Range -->
   <div id="rangeGame" class="container hidden">
     <h1>Gioco Range</h1>
-    <input type="number" id="rangeMin" placeholder="Min">
-    <input type="number" id="rangeMax" placeholder="Max">
-    <div>
-      <button id="rangeStartBtn">Avvia</button>
+    <div style="display:flex;gap:8px;">
+      <input type="number" id="rangeMin" placeholder="Min" inputmode="numeric">
+      <input type="number" id="rangeMax" placeholder="Max" inputmode="numeric">
     </div>
+    <button id="rangeStartBtn" style="margin-top:8px;">Avvia</button>
     <div class="flashcard" id="rangeFlashcard"></div>
-    <input type="text" id="rangeAnswer" placeholder="Inserisci la parola">
-    <div>
-      <button id="rangeCheckBtn">Controlla</button>
-      <button id="rangeNextBtn">Prossimo</button>
+    <input type="text" id="rangeAnswer" placeholder="Inserisci la parola" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="rangeCheckBtn" style="flex:1;">Controlla</button>
+      <button id="rangeNextBtn" style="flex:1;">Prossimo</button>
     </div>
     <div class="feedback" id="rangeFeedback"></div>
     <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
   </div>
 
-  <!-- Gioco Multi-Cifre -->
   <div id="multiGame" class="container hidden">
     <h1>Gioco Multi-Cifre</h1>
-    <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1">
-    <div>
-      <button id="multiStartBtn">Avvia</button>
-    </div>
+    <input type="number" id="multiDigits" placeholder="Numero di cifre (es. 6)" min="1" inputmode="numeric">
+    <button id="multiStartBtn" style="margin-top:8px;">Avvia</button>
     <div class="flashcard" id="multiFlashcard"></div>
-    <input type="text" id="multiAnswer" placeholder="Inserisci le parole separate da spazi">
-    <div>
-      <button id="multiCheckBtn">Controlla</button>
-      <button id="multiNextBtn">Prossimo</button>
+    <input type="text" id="multiAnswer" placeholder="Parole separate da spazi" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="multiCheckBtn" style="flex:1;">Controlla</button>
+      <button id="multiNextBtn" style="flex:1;">Prossimo</button>
     </div>
     <div class="feedback" id="multiFeedback"></div>
     <button class="back-btn" onclick="showSection('menu')">Torna al Menu</button>
   </div>
 
-  <script>
-    // Mappatura: definizione delle coppie numero-parola
-    const mapping = {
-            "0": "Osso",
-      "00": "sasso",
-      "01": "seta",
-      "02": "seno",
-      "03": "Summa",
-      "04": "Sara",
-      "05": "Sale",
-      "06": "sci",
-      "07": "Sacco",
-      "08": "Sofia",
-      "09": "Seppia",
-      "1": "The",
-      "2": "Noè",
-      "3": "Amo",
-      "4": "Re",
-      "5": "Ali",
-      "6": "Ciao",
-      "7": "Oca",
-      "8": "Ufo",
-      "9": "Boa",
-      "10": "Tazza",
-      "11": "Tetto",
-      "12": "Dino",
-      "13": "Dama",
-      "14": "Torre",
-      "15": "Tela",
-      "16": "Doccia",
-      "17": "Tacco",
-      "18": "TV",
-      "19": "Tappo",
-      "20": "Naso",
-      "21": "Nido",
-      "22": "Nonno",
-      "23": "Nemo",
-      "24": "Nero",
-      "25": "Anello",
-      "26": "Noce",
-      "27": "Nek",
-      "28": "Nave",
-      "29": "Nebbia",
-      "30": "Mazza",
-      "31": "Moto",
-      "32": "Mina",
-      "33": "Mamma",
-      "34": "Mare",
-      "35": "Mela",
-      "36": "Micio",
-      "37": "Moca",
-      "38": "Muffa",
-      "39": "Mappa",
-      "40": "Razzo",
-      "41": "Ruota",
-      "42": "Rana",
-      "43": "Remo",
-      "44": "Rara",
-      "45": "Rullo",
-      "46": "Roccia",
-      "47": "Roki",
-      "48": "Rovo",
-      "49": "Arpa",
-      "50": "Lazzo",
-      "51": "Latte",
-      "52": "Luna",
-      "53": "Lima",
-      "54": "Lara",
-      "55": "Lollo",
-      "56": "Lucio",
-      "57": "Lacca",
-      "58": "Lava",
-      "59": "Lupo",
-      "60": "Cesso",
-      "61": "Cita",
-      "62": "J.Cena",
-      "63": "Gemma",
-      "64": "Cero",
-      "65": "Gel",
-      "66": "Gigio",
-      "67": "Giacca",
-      "68": "Ciuffo",
-      "69": "Geep",
-      "70": "Cazzo",
-      "71": "Gatto",
-      "72": "Cane",
-      "73": "Gomma",
-      "74": "Carro",
-      "75": "Colla",
-      "76": "Goccia",
-      "77": "Cacca",
-      "78": "Gufo",
-      "79": "Coppa",
-      "80": "Vaso",
-      "81": "Vite",
-      "82": "Vino",
-      "83": "Fiamma",
-      "84": "Faro",
-      "85": "Vela",
-      "86": "Faccia Pok.Face",
-      "87": "Foca",
-      "88": "Fava",
-      "89": "Fibbia",
-      "90": "Pizza",
-      "91": "Botte",
-      "92": "Pane",
-      "93": "Puma",
-      "94": "Pera",
-      "95": "Palla",
-      "96": "Bocce",
-      "97": "Pacco",
-      "98": "Puffo",
-      "99": "Pippo"
-    };
+  <style>
+    .flashcard {
+      background-color: #000;
+      border-radius: 12px;
+      padding: 24px;
+      font-size: 2.5em;
+      margin: 14px 0;
+      min-height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .feedback { margin-top: 12px; font-size: 1em; min-height: 1.2em; }
+    .feedback.correct { color: var(--success); }
+    .feedback.error { color: var(--error); }
+  </style>
 
-    // Funzione per mostrare/nascondere sezioni
+  <script src="mapping.js"></script>
+  <script>
     function showSection(sectionId) {
-      const sections = document.querySelectorAll('.container');
-      sections.forEach(sec => {
-        sec.classList.add('hidden');
-      });
+      document.querySelectorAll('.container').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(sectionId).classList.remove('hidden');
     }
 
-    // --- Menu Principale ---
     document.getElementById('classicModeBtn').addEventListener('click', () => {
       showSection('classicGame');
       showClassicCard();
@@ -302,16 +111,13 @@
 
     // --- Gioco Classico ---
     let currentClassicKey = "";
-    function pickRandomClassic() {
-      const keys = Object.keys(mapping);
-      const randomIndex = Math.floor(Math.random() * keys.length);
-      return keys[randomIndex];
-    }
+    const classicKeys = Object.keys(mapping);
     function showClassicCard() {
-      currentClassicKey = pickRandomClassic();
+      currentClassicKey = classicKeys[Math.floor(Math.random() * classicKeys.length)];
       document.getElementById('classicFlashcard').textContent = currentClassicKey;
       document.getElementById('classicAnswer').value = "";
       document.getElementById('classicFeedback').textContent = "";
+      document.getElementById('classicFeedback').className = "feedback";
       document.getElementById('classicAnswer').focus();
     }
     function checkClassicAnswer() {
@@ -320,16 +126,20 @@
       const feedbackEl = document.getElementById('classicFeedback');
       if (userAns === correctAns) {
         feedbackEl.textContent = "Corretto!";
-        feedbackEl.classList.remove('error');
-        feedbackEl.classList.add('correct');
+        feedbackEl.className = "feedback correct";
       } else {
-        feedbackEl.textContent = `Sbagliato. La risposta corretta è: ${mapping[currentClassicKey]}`;
-        feedbackEl.classList.remove('correct');
-        feedbackEl.classList.add('error');
+        feedbackEl.textContent = `Sbagliato. Risposta: ${mapping[currentClassicKey]}`;
+        feedbackEl.className = "feedback error";
       }
     }
     document.getElementById('classicCheckBtn').addEventListener('click', checkClassicAnswer);
     document.getElementById('classicNextBtn').addEventListener('click', showClassicCard);
+    document.getElementById('classicAnswer').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('classicFeedback').textContent) showClassicCard();
+        else checkClassicAnswer();
+      }
+    });
 
     // --- Gioco Range ---
     let rangeKeys = [];
@@ -350,11 +160,11 @@
         feedbackEl.textContent = "";
         return;
       }
-      const randomIndex = Math.floor(Math.random() * rangeKeys.length);
-      currentRangeKey = rangeKeys[randomIndex];
+      currentRangeKey = rangeKeys[Math.floor(Math.random() * rangeKeys.length)];
       flashcardEl.textContent = currentRangeKey;
       document.getElementById('rangeAnswer').value = "";
       feedbackEl.textContent = "";
+      feedbackEl.className = "feedback";
       document.getElementById('rangeAnswer').focus();
     }
     function checkRangeAnswer() {
@@ -363,12 +173,10 @@
       const feedbackEl = document.getElementById('rangeFeedback');
       if (userAns === correctAns) {
         feedbackEl.textContent = "Corretto!";
-        feedbackEl.classList.remove('error');
-        feedbackEl.classList.add('correct');
+        feedbackEl.className = "feedback correct";
       } else {
-        feedbackEl.textContent = `Sbagliato. La risposta corretta è: ${mapping[currentRangeKey]}`;
-        feedbackEl.classList.remove('correct');
-        feedbackEl.classList.add('error');
+        feedbackEl.textContent = `Sbagliato. Risposta: ${mapping[currentRangeKey]}`;
+        feedbackEl.className = "feedback error";
       }
     }
     document.getElementById('rangeStartBtn').addEventListener('click', () => {
@@ -378,7 +186,6 @@
         alert("Inserisci un intervallo valido");
         return;
       }
-      // Filtra le chiavi in base al loro valore numerico
       rangeKeys = Object.keys(mapping).filter(key => {
         const n = parseInt(key, 10);
         return !isNaN(n) && n >= minVal && n <= maxVal;
@@ -387,6 +194,12 @@
     });
     document.getElementById('rangeCheckBtn').addEventListener('click', checkRangeAnswer);
     document.getElementById('rangeNextBtn').addEventListener('click', showRangeCard);
+    document.getElementById('rangeAnswer').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('rangeFeedback').textContent) showRangeCard();
+        else checkRangeAnswer();
+      }
+    });
 
     // --- Gioco Multi-Cifre ---
     let currentMultiNumber = "";
@@ -407,7 +220,7 @@
       return result;
     }
     function splitIntoGroups(numStr) {
-      let groups = [];
+      const groups = [];
       for (let i = 0; i < numStr.length; i += 2) {
         groups.push(numStr.substring(i, i + 2));
       }
@@ -424,6 +237,7 @@
       document.getElementById('multiFlashcard').textContent = currentMultiNumber;
       document.getElementById('multiAnswer').value = "";
       document.getElementById('multiFeedback').textContent = "";
+      document.getElementById('multiFeedback').className = "feedback";
       document.getElementById('multiAnswer').focus();
     }
     function checkMultiAnswer() {
@@ -431,7 +245,7 @@
       const feedbackEl = document.getElementById('multiFeedback');
       const userWords = userAns.split(/\s+/);
       let correct = true;
-      let correctAnswers = [];
+      const correctAnswers = [];
       for (let i = 0; i < multiGroups.length; i++) {
         const group = multiGroups[i];
         const correctWord = mapping[group] || `[${group}]`;
@@ -442,25 +256,29 @@
       }
       if (correct) {
         feedbackEl.textContent = "Corretto!";
-        feedbackEl.classList.remove('error');
-        feedbackEl.classList.add('correct');
+        feedbackEl.className = "feedback correct";
       } else {
-        feedbackEl.textContent = `Sbagliato. Le risposte corrette sono: ${correctAnswers.join(' ')}`;
-        feedbackEl.classList.remove('correct');
-        feedbackEl.classList.add('error');
+        feedbackEl.textContent = `Sbagliato. Risposte: ${correctAnswers.join(' ')}`;
+        feedbackEl.className = "feedback error";
       }
     }
     document.getElementById('multiStartBtn').addEventListener('click', showMultiCard);
     document.getElementById('multiCheckBtn').addEventListener('click', checkMultiAnswer);
     document.getElementById('multiNextBtn').addEventListener('click', showMultiCard);
+    document.getElementById('multiAnswer').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('multiFeedback').textContent) showMultiCard();
+        else checkMultiAnswer();
+      }
+    });
+
+    // Deep link per gli shortcut PWA: ?mode=classic|range|multi
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode');
+    if (mode === 'classic') { showSection('classicGame'); showClassicCard(); }
+    else if (mode === 'range') { showSection('rangeGame'); resetRangeGame(); }
+    else if (mode === 'multi') { showSection('multiGame'); resetMultiGame(); }
   </script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('Service Worker registrato con successo!'))
-        .catch(err => console.error('Service Worker non registrato:', err));
-    }
-  </script>
-  
+  <script src="pwa.js"></script>
 </body>
 </html>

@@ -2,268 +2,110 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#000000">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Calcolatrice Mappa Numeri-Parole</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Card-Fonetica">
+  <link rel="apple-touch-icon" href="card-192.png">
+  <link rel="icon" type="image/png" href="card-192.png">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    /* Grafica in stile iPhone */
-    html, body {
-      touch-action: manipulation;
-    }
-    body {
-      background-color: #000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
     .calculator {
-      background-color: #333;
-      border-radius: 20px;
-      padding: 20px;
-      width: 320px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      background-color: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
     .display {
       background-color: #000;
-      color: #0f0;
-      font-size: 2em;
+      color: var(--accent);
+      font-size: 1.8em;
       text-align: right;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      min-height: 50px;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      min-height: 60px;
       word-wrap: break-word;
+      font-weight: 600;
+      -webkit-user-select: text;
+      user-select: text;
     }
-    /* Riga operativa in alto */
-    .operations {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    /* Griglia dei tasti numerici */
-    .buttons {
+    .operations, .buttons {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
-    button {
-      background-color: #666;
-      border: none;
-      border-radius: 10px;
-      padding: 20px;
+    .operations { margin-bottom: 10px; }
+    .calculator button {
+      padding: 18px;
       font-size: 1.2em;
-      color: #fff;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      font-weight: 600;
     }
-    button:active {
-      background-color: #888;
-    }
-    /* I pulsanti disabilitati (vuoti) non sono cliccabili */
-    button[disabled] {
+    .calculator button[disabled] {
       background-color: transparent;
       cursor: default;
     }
+    #enter { background-color: var(--accent); color: #000; }
   </style>
 </head>
 <body>
+  <button id="installBtn" class="hidden" type="button">Installa app</button>
+
   <div class="calculator">
-    <!-- Display -->
     <div class="display" id="display"></div>
-    
-    <!-- Riga operativa: C, ⌫, Invio -->
+
     <div class="operations">
       <button id="clear">C</button>
       <button id="delete">⌫</button>
       <button id="enter">Invio</button>
     </div>
-    
-    <!-- Griglia dei tasti numerici: 4 righe a 3 colonne -->
+
     <div class="buttons">
-      <!-- Riga 1: 7, 8, 9 -->
       <button data-value="7">7</button>
       <button data-value="8">8</button>
       <button data-value="9">9</button>
-      <!-- Riga 2: 4, 5, 6 -->
       <button data-value="4">4</button>
       <button data-value="5">5</button>
       <button data-value="6">6</button>
-      <!-- Riga 3: 1, 2, 3 -->
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <!-- Riga 4: pulsante vuoto, 0, pulsante vuoto -->
       <button onclick="window.location.href='index.html'">⌂ Home</button>
       <button data-value="0">0</button>
       <button disabled></button>
     </div>
   </div>
 
+  <script src="mapping.js"></script>
   <script>
-    // Mappatura: definizione delle coppie numero-parola
-    const mapping = {
-      "0": "Osso",
-      "00": "sasso",
-      "01": "seta",
-      "02": "seno",
-      "03": "Summa",
-      "04": "Sara",
-      "05": "Sale",
-      "06": "sci",
-      "07": "Sacco",
-      "08": "Sofia",
-      "09": "Seppia",
-      "1": "The",
-      "2": "Noè",
-      "3": "Amo",
-      "4": "Re",
-      "5": "Ali",
-      "6": "Ciao",
-      "7": "Oca",
-      "8": "Ufo",
-      "9": "Boa",
-      "10": "Tazza",
-      "11": "Tetto",
-      "12": "Dino",
-      "13": "Dama",
-      "14": "Torre",
-      "15": "Tela",
-      "16": "Doccia",
-      "17": "Tacco",
-      "18": "TV",
-      "19": "Tappo",
-      "20": "Naso",
-      "21": "Nido",
-      "22": "Nonno",
-      "23": "Nemo",
-      "24": "Nero",
-      "25": "Anello",
-      "26": "Noce",
-      "27": "Nek",
-      "28": "Nave",
-      "29": "Nebbia",
-      "30": "Mazza",
-      "31": "Moto",
-      "32": "Mina",
-      "33": "Mamma",
-      "34": "Mare",
-      "35": "Mela",
-      "36": "Micio",
-      "37": "Moca",
-      "38": "Muffa",
-      "39": "Mappa",
-      "40": "Razzo",
-      "41": "Ruota",
-      "42": "Rana",
-      "43": "Remo",
-      "44": "Rara",
-      "45": "Rullo",
-      "46": "Roccia",
-      "47": "Roki",
-      "48": "Rovo",
-      "49": "Arpa",
-      "50": "Lazzo",
-      "51": "Latte",
-      "52": "Luna",
-      "53": "Lima",
-      "54": "Lara",
-      "55": "Lollo",
-      "56": "Lucio",
-      "57": "Lacca",
-      "58": "Lava",
-      "59": "Lupo",
-      "60": "Cesso",
-      "61": "Cita",
-      "62": "J.Cena",
-      "63": "Gemma",
-      "64": "Cero",
-      "65": "Gel",
-      "66": "Gigio",
-      "67": "Giacca",
-      "68": "Ciuffo",
-      "69": "Geep",
-      "70": "Cazzo",
-      "71": "Gatto",
-      "72": "Cane",
-      "73": "Gomma",
-      "74": "Carro",
-      "75": "Colla",
-      "76": "Goccia",
-      "77": "Cacca",
-      "78": "Gufo",
-      "79": "Coppa",
-      "80": "Vaso",
-      "81": "Vite",
-      "82": "Vino",
-      "83": "Fiamma",
-      "84": "Faro",
-      "85": "Vela",
-      "86": "Faccia Pok.Face",
-      "87": "Foca",
-      "88": "Fava",
-      "89": "Fibbia",
-      "90": "Pizza",
-      "91": "Botte",
-      "92": "Pane",
-      "93": "Puma",
-      "94": "Pera",
-      "95": "Palla",
-      "96": "Bocce",
-      "97": "Pacco",
-      "98": "Puffo",
-      "99": "Pippo"
-    };
-
     const display = document.getElementById('display');
-    const opButtons = document.querySelectorAll('.operations button');
-    const numButtons = document.querySelectorAll('.buttons button');
 
-    // Funzione per aggiornare il display
-    function updateDisplay(value) {
-      display.textContent = value;
-    }
+    function updateDisplay(value) { display.textContent = value; }
 
-    // Operazioni: C, ⌫, Invio
-    opButtons.forEach(button => {
+    document.getElementById('clear').addEventListener('click', () => updateDisplay(''));
+    document.getElementById('delete').addEventListener('click', () => updateDisplay(display.textContent.slice(0, -1)));
+    document.getElementById('enter').addEventListener('click', () => {
+      const input = display.textContent;
+      const result = [];
+      for (let i = 0; i < input.length; i += 2) {
+        const num = input.substring(i, i + 2);
+        result.push(mapping[num] || `[${num}]`);
+      }
+      updateDisplay(result.join(' '));
+    });
+
+    document.querySelectorAll('.buttons button[data-value]').forEach(button => {
       button.addEventListener('click', () => {
-        const id = button.id;
-        if (id === 'clear') {
-          // Cancella tutto
-          updateDisplay('');
-        } else if (id === 'delete') {
-          // Cancella l'ultimo carattere
-          updateDisplay(display.textContent.slice(0, -1));
-        } else if (id === 'enter') {
-          // Conversione: suddivide il contenuto in gruppi di due cifre e sostituisce con la parola corrispondente
-          const input = display.textContent;
-          let result = [];
-          for (let i = 0; i < input.length; i += 2) {
-            let num = input.substring(i, i + 2);
-            let word = mapping[num];
-            if (!word) {
-              word = `[${num}]`;
-            }
-            result.push(word);
-          }
-          updateDisplay(result.join(' '));
-        }
+        updateDisplay(display.textContent + button.getAttribute('data-value'));
       });
     });
-
-    // Tasti numerici: aggiunge il valore cliccato al display
-    numButtons.forEach(button => {
-      if (!button.disabled) {
-        button.addEventListener('click', () => {
-          const value = button.getAttribute('data-value');
-          updateDisplay(display.textContent + value);
-        });
-      }
-    });
   </script>
+  <script src="pwa.js"></script>
 </body>
 </html>
-

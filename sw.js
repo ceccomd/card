@@ -1,49 +1,50 @@
-// Nome della cache (puoi sceglierne uno qualsiasi)
-const CACHE_NAME = 'pwa-cache-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `card-fonetica-${CACHE_VERSION}`;
 
-// Lista dei file da mettere in cache
 const CACHE_FILES = [
   './',
   './index.html',
-  './calc.html',  // <- nuovo file
+  './calc.html',
   './manifest.json',
   './styles.css',
-  './script.js',
-  // Aggiungi qui eventuali file di immagini, icone, ecc.
-  // Esempio: './icon-192.png', './icon-512.png'
+  './mapping.js',
+  './pwa.js',
+  './card-192.png',
+  './card.png'
 ];
 
-// Evento 'install': avviene quando il browser installa il service worker
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(CACHE_FILES);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(CACHE_FILES))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Evento 'fetch': intercetta tutte le richieste e prova a rispondere con la cache
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      // Se il file è in cache, lo restituiamo
-      // altrimenti facciamo la fetch dalla rete
-      return response || fetch(event.request);
-    })
-  );
-});
-
-// Evento 'activate': usato per aggiornare la cache e rimuovere versioni vecchie
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keyList => {
-      return Promise.all(
-        keyList.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+
+  event.respondWith(
+    caches.match(req).then(cached => {
+      const network = fetch(req).then(res => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+        }
+        return res;
+      }).catch(() => cached);
+      return cached || network;
     })
   );
 });
