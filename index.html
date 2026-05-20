@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Card Fonetica - Allenamento Mnemonico</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#EFE9DF">
+  <meta name="theme-color" content="#EBE7DE">
   <meta name="description" content="Allena la memoria associando numeri a parole con il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,33 +15,33 @@
   <link rel="icon" type="image/png" href="card-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css">
   <style>
     .flashcard {
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 38px 20px;
-      font-family: var(--font-serif);
-      font-size: 3rem;
+      background: var(--surface);
+      border: none;
+      border-radius: 28px;
+      padding: 44px 20px;
+      font-family: var(--font-sans);
+      font-size: 3.4rem;
       margin: 14px 0;
-      min-height: 130px;
+      min-height: 150px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-weight: 500;
-      letter-spacing: -0.02em;
-      color: var(--ink);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: var(--text);
       font-variant-numeric: tabular-nums;
-      box-shadow: var(--shadow);
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: var(--neu-raised-lg);
+      transition: box-shadow 0.3s ease, color 0.3s ease;
       user-select: none;
       -webkit-user-select: none;
     }
     .flashcard.flip { animation: cardFade 0.32s ease; }
-    .flashcard.win  { border-color: var(--sage); }
-    .flashcard.lose { border-color: var(--error-soft); animation: cardShake 0.32s; }
+    .flashcard.win  { color: var(--sage-dark); }
+    .flashcard.lose { color: var(--error); animation: cardShake 0.32s; }
     @keyframes cardFade {
       0%   { opacity: 0.3; transform: translateY(6px); }
       100% { opacity: 1;   transform: none; }
@@ -54,10 +54,10 @@
     }
 
     .feedback {
-      margin-top: 12px;
+      margin-top: 14px;
       font-size: 0.88rem;
       min-height: 1.4em;
-      font-weight: 500;
+      font-weight: 600;
       text-align: center;
       letter-spacing: 0.01em;
     }
@@ -66,41 +66,40 @@
 
     .stats {
       display: flex;
-      gap: 8px;
-      margin: 8px 0 14px;
+      gap: 12px;
+      margin: 12px 0 18px;
     }
     .stats .chip {
       flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-sm);
-      padding: 10px 6px 8px;
+      background: var(--surface);
+      border: none;
+      border-radius: 18px;
+      padding: 12px 6px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      box-shadow: var(--shadow-sm);
-      transition: background-color 0.3s ease, border-color 0.3s ease;
+      gap: 3px;
+      box-shadow: var(--neu-raised-sm);
+      transition: box-shadow 0.3s ease, color 0.3s ease;
     }
     .stats .stat-value {
-      font-family: var(--font-serif);
+      font-family: var(--font-sans);
       font-size: 1.55rem;
-      font-weight: 500;
-      color: var(--ink);
+      font-weight: 700;
+      color: var(--text);
       font-variant-numeric: tabular-nums;
       line-height: 1;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
     .stats .stat-label {
-      font-size: 0.66rem;
-      font-weight: 500;
+      font-size: 0.62rem;
+      font-weight: 600;
       color: var(--text-soft);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
     }
     .chip.streak.active {
-      background: var(--sage-tint);
-      border-color: var(--sage);
+      box-shadow: var(--neu-pressed-sm);
     }
     .chip.streak.active .stat-value { color: var(--sage-dark); }
 
@@ -113,20 +112,23 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 44px;
-      height: 44px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      background: var(--ink);
-      color: var(--paper-2);
-      font-family: var(--font-serif);
-      font-size: 1.15rem;
-      font-weight: 500;
-      letter-spacing: 0;
-      margin-bottom: 14px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      box-shadow: var(--neu-raised);
     }
     .brand h1 {
-      font-size: 2.1rem;
+      font-size: 1.85rem;
+      font-weight: 700;
       margin-bottom: 2px;
+      letter-spacing: -0.025em;
     }
     .brand .subtitle {
       font-size: 0.88rem;
@@ -139,7 +141,7 @@
       justify-content: space-between;
       margin-bottom: 4px;
     }
-    .game-header h1 { font-size: 1.55rem; }
+    .game-header h1 { font-size: 1.4rem; }
   </style>
 </head>
 <body>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Calcolatore - Card Fonetica</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#EFE9DF">
+  <meta name="theme-color" content="#EBE7DE">
   <meta name="description" content="Converti una sequenza di numeri in parole secondo il sistema mnemonico fonetico.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,17 +15,17 @@
   <link rel="icon" type="image/png" href="card-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap">
   <link rel="stylesheet" href="styles.css">
   <style>
     .calculator {
-      background-color: var(--card);
-      border: 1px solid var(--border-soft);
+      background: var(--surface);
+      border: none;
       border-radius: var(--radius-lg);
       padding: 28px 24px 22px;
       width: 100%;
       max-width: 440px;
-      box-shadow: var(--shadow);
+      box-shadow: var(--neu-raised-lg);
       animation: enter 0.4s ease-out;
     }
     @media (min-width: 720px) {
@@ -33,90 +33,91 @@
     }
     .calc-header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .calc-header h1 {
-      font-family: var(--font-serif);
-      font-size: 1.55rem;
-      font-weight: 500;
-      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
       margin: 0;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
     .calc-header .home-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 999px;
+      background: var(--surface);
+      border: none;
+      border-radius: var(--pill);
       min-height: 0;
-      padding: 6px 14px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      padding: 9px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
       color: var(--text-soft);
-      box-shadow: none;
+      box-shadow: var(--neu-raised-sm);
     }
-    .calc-header .home-btn:hover { background: var(--paper-2); color: var(--ink); }
+    .calc-header .home-btn:hover { color: var(--text); box-shadow: var(--neu-raised); }
     .display {
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      color: var(--ink);
-      font-family: var(--font-serif);
-      font-size: 1.65rem;
+      background: var(--surface);
+      border: none;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 1.8rem;
       text-align: right;
-      padding: 20px 22px;
-      border-radius: var(--radius);
-      margin-bottom: 16px;
-      min-height: 88px;
+      padding: 24px 28px;
+      border-radius: 22px;
+      margin-bottom: 18px;
+      min-height: 96px;
       word-wrap: break-word;
       overflow-wrap: anywhere;
-      font-weight: 500;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
       -webkit-user-select: text;
       user-select: text;
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.25s ease;
+      box-shadow: var(--neu-pressed);
+      transition: color 0.25s ease;
     }
     .display:empty::before {
       content: "0";
       color: var(--muted);
-      opacity: 0.6;
+      opacity: 0.7;
     }
     .display.word-result {
-      border-color: var(--sage);
-      background: #FFFFFF;
-      font-size: 1.3rem;
+      color: var(--sage-dark);
+      font-size: 1.4rem;
       text-align: center;
       justify-content: center;
-      letter-spacing: 0;
+      letter-spacing: -0.01em;
+      font-weight: 700;
     }
     .operations, .keys {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 12px;
     }
-    .operations { margin-bottom: 10px; }
+    .operations { margin-bottom: 12px; }
     .calculator button {
       padding: 18px 0;
       font-size: 1.3rem;
-      font-weight: 500;
-      font-family: var(--font-serif);
-      min-height: 60px;
-      letter-spacing: 0;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      min-height: 64px;
+      letter-spacing: -0.01em;
+      border-radius: var(--pill);
     }
     .calculator button[disabled] {
-      background-color: transparent;
-      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
       cursor: default;
       visibility: hidden;
     }
-    #clear  { color: var(--error); border-color: var(--border); }
+    #clear  { color: var(--error); }
     #delete { color: var(--text-soft); }
-    #enter  { /* eredita .primary */ font-family: var(--font-sans); font-weight: 500; font-size: 0.95rem; }
+    #enter  { /* eredita .primary */ font-size: 1.05rem; }
   </style>
 </head>
 <body>
