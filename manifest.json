@@ -1,5 +1,5 @@
 {
-  "id": "/card-fonetica/",
+  "id": "./",
   "name": "Flash Card Fonetica",
   "short_name": "Card-Fonetica",
   "description": "Allenamento mnemonico per associare numeri a parole con il sistema fonetico.",
@@ -25,10 +25,16 @@
       "purpose": "maskable"
     },
     {
-      "src": "card.png",
-      "sizes": "500x500",
+      "src": "card-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "card-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [

@@ -155,7 +155,7 @@ button.ghost { background: var(--surface); color: var(--text); }
 input[type="text"],
 input[type="number"] {
   padding: 15px 22px;
-  font-size: 0.98rem;
+  font-size: 16px; /* min 16px su iOS per evitare zoom automatico al focus */
   border-radius: var(--pill);
   border: none;
   background: var(--surface);

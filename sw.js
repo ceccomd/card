@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `card-fonetica-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
@@ -10,6 +10,7 @@ const CACHE_FILES = [
   './mapping.js',
   './pwa.js',
   './card-192.png',
+  './card-512.png',
   './card.png'
 ];
 
