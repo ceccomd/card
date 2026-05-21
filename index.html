@@ -142,6 +142,24 @@
       margin-bottom: 4px;
     }
     .game-header h1 { font-size: 1.4rem; }
+
+    .voice-status {
+      margin: 10px 0 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      text-align: center;
+      letter-spacing: 0.01em;
+      min-height: 1.4em;
+    }
+    .voice-heard {
+      margin: 0 0 6px;
+      font-size: 0.85rem;
+      color: var(--text);
+      text-align: center;
+      font-style: italic;
+      min-height: 1.4em;
+    }
   </style>
 </head>
 <body>
@@ -157,6 +175,7 @@
       <button id="classicModeBtn" class="primary">Gioco Classico</button>
       <button id="rangeModeBtn">Gioco Range</button>
       <button id="multiModeBtn">Multi-Cifre</button>
+      <button id="voiceModeBtn">Modalità Vocale</button>
       <button onclick="window.location.href='calc.html'">Calcolatore</button>
     </div>
   </main>
@@ -222,6 +241,28 @@
     <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
   </section>
 
+  <section id="voiceMode" class="container hidden" aria-labelledby="voice-title">
+    <div class="game-header"><h1 id="voice-title">Modalità Vocale</h1></div>
+    <p class="subtitle">Cuffia consigliata. Ascolta il numero, rispondi a voce.</p>
+    <div class="stats" role="status" aria-live="polite">
+      <div class="chip"><span class="stat-value" id="voiceCorrect">0</span><span class="stat-label">Corrette</span></div>
+      <div class="chip"><span class="stat-value" id="voiceTotal">0</span><span class="stat-label">Totali</span></div>
+      <div class="chip streak" id="voiceStreakChip"><span class="stat-value" id="voiceStreak">0</span><span class="stat-label">Streak</span></div>
+    </div>
+    <div class="flashcard" id="voiceFlashcard" role="img" aria-label="Numero corrente">—</div>
+    <p class="voice-status" id="voiceStatus">Premi Avvia per iniziare</p>
+    <p class="voice-heard" id="voiceHeard" aria-live="polite"></p>
+    <div class="row" style="margin-top:10px;">
+      <button id="voiceToggleBtn" class="primary">Avvia</button>
+      <button id="voiceRepeatBtn" class="ghost" disabled>Ripeti</button>
+    </div>
+    <div class="feedback" id="voiceFeedback" role="status" aria-live="polite"></div>
+    <p id="voiceUnsupported" class="feedback error hidden" style="margin-top:14px;">
+      Questo browser non supporta il riconoscimento vocale. Prova Chrome o Safari su iOS 14.5+.
+    </p>
+    <button class="back-btn" onclick="stopVoiceMode(); showSection('menu')">← Torna al Menu</button>
+  </section>
+
   <script src="mapping.js"></script>
   <script>
     function showSection(sectionId) {
@@ -277,6 +318,10 @@
     document.getElementById('multiModeBtn').addEventListener('click', () => {
       showSection('multiGame');
       resetMultiGame();
+    });
+    document.getElementById('voiceModeBtn').addEventListener('click', () => {
+      showSection('voiceMode');
+      if (typeof initVoiceMode === 'function') initVoiceMode();
     });
 
     // --- Gioco Classico ---
@@ -492,6 +537,7 @@
     else if (mode === 'range') { showSection('rangeGame'); resetRangeGame(); }
     else if (mode === 'multi') { showSection('multiGame'); resetMultiGame(); }
   </script>
+  <script src="voice.js"></script>
   <script src="pwa.js"></script>
 </body>
 </html>
