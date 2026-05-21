@@ -10,6 +10,7 @@
   let running = false;
   let listening = false;
   let currentKey = '';
+  let noSpeechTimer = null;
   const state = { correct: 0, total: 0, streak: 0 };
 
   const $ = (id) => document.getElementById(id);
@@ -109,6 +110,10 @@
     card.classList.add(ok ? 'win' : 'lose');
   }
 
+  function clearNoSpeechTimer() {
+    if (noSpeechTimer) { clearTimeout(noSpeechTimer); noSpeechTimer = null; }
+  }
+
   function startRecog() {
     if (!Recog || !running || listening) return;
     try {
@@ -118,11 +123,28 @@
       recognition.interimResults = false;
       recognition.maxAlternatives = 3;
 
+      let handled = false;
+      const repeatIfNoSpeech = () => {
+        if (handled || !running) return;
+        handled = true;
+        setStatus('Non ho sentito. Ripeto il numero.');
+        setTimeout(() => { if (running) askCurrent(); }, 400);
+      };
+
       recognition.onstart = () => {
         listening = true;
         setStatus('Ti ascolto...');
+        clearNoSpeechTimer();
+        // Safety net: some browsers (Safari iOS in particular) never fire
+        // a `no-speech` event and just go quiet. Force a stop after 8s.
+        noSpeechTimer = setTimeout(() => {
+          if (!running) return;
+          try { recognition.stop(); } catch (_) {}
+        }, 8000);
       };
       recognition.onresult = (e) => {
+        handled = true;
+        clearNoSpeechTimer();
         const alts = [];
         const result = e.results[0];
         for (let i = 0; i < result.length; i++) alts.push(result[i].transcript);
@@ -130,20 +152,27 @@
       };
       recognition.onerror = (e) => {
         listening = false;
+        clearNoSpeechTimer();
         if (!running) return;
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          handled = true;
           setStatus('Permesso microfono negato. Abilita il microfono nelle impostazioni del browser.');
           stopVoiceMode();
           return;
         }
-        if (e.error === 'no-speech' || e.error === 'audio-capture') {
-          setStatus('Non ho sentito. Ripeto il numero.');
-          setTimeout(() => { if (running) askCurrent(); }, 400);
+        if (e.error === 'no-speech' || e.error === 'audio-capture' || e.error === 'aborted') {
+          repeatIfNoSpeech();
           return;
         }
+        handled = true;
         setStatus('Errore: ' + e.error);
       };
-      recognition.onend = () => { listening = false; };
+      recognition.onend = () => {
+        listening = false;
+        clearNoSpeechTimer();
+        if (!running) return;
+        repeatIfNoSpeech();
+      };
       recognition.start();
     } catch (err) {
       listening = false;
