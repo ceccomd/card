@@ -59,6 +59,60 @@
       box-shadow: var(--neu-raised-sm);
     }
     .calc-header .home-btn:hover { color: var(--text); box-shadow: var(--neu-raised); }
+
+    .voice-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .voice-bar button {
+      flex: 1;
+      background: var(--surface);
+      border: none;
+      border-radius: var(--pill);
+      padding: 14px 16px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      box-shadow: var(--neu-raised-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: box-shadow 0.2s ease, color 0.2s ease;
+      min-height: 0;
+    }
+    .voice-bar button:active { box-shadow: var(--neu-pressed-sm); }
+    .voice-bar button[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: var(--neu-raised-sm);
+    }
+    .voice-bar .mic.listening {
+      color: var(--sage-dark);
+      box-shadow: var(--neu-pressed-sm);
+    }
+    .voice-bar .mic-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--text-soft);
+    }
+    .voice-bar .mic.listening .mic-dot {
+      background: var(--sage-dark);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+    .voice-hint {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+      text-align: center;
+      margin: -6px 0 12px;
+      min-height: 1.2em;
+    }
+
     .display {
       background: var(--surface);
       border: none;
@@ -111,11 +165,18 @@
       letter-spacing: -0.01em;
       border-radius: var(--pill);
     }
+    .calculator .voice-bar button { padding: 14px 16px; font-size: 0.95rem; min-height: 0; }
     .calculator button[disabled] {
       background: transparent;
       box-shadow: none;
       cursor: default;
       visibility: hidden;
+    }
+    .calculator .voice-bar button[disabled] {
+      background: var(--surface);
+      box-shadow: var(--neu-raised-sm);
+      visibility: visible;
+      cursor: not-allowed;
     }
     #clear  { color: var(--error); }
     #delete { color: var(--text-soft); }
@@ -130,6 +191,16 @@
       <h1>Calcolatore</h1>
       <button class="home-btn" onclick="window.location.href='index.html'" aria-label="Torna alla home">← Home</button>
     </div>
+
+    <div class="voice-bar">
+      <button class="mic" id="micBtn" type="button" aria-label="Detta un numero">
+        <span class="mic-dot" aria-hidden="true"></span><span id="micLabel">Detta numero</span>
+      </button>
+      <button id="replayBtn" type="button" aria-label="Rileggi il risultato" disabled>
+        🔊 Rileggi
+      </button>
+    </div>
+    <p class="voice-hint" id="voiceHint">Premi il microfono e di' il numero (es. "milleecentoventiquattro" o "uno uno due quattro")</p>
 
     <div class="display" id="display" role="status" aria-live="polite" aria-label="Display"></div>
 
@@ -156,10 +227,13 @@
   </main>
 
   <script src="mapping.js"></script>
+  <script src="voice-core.js"></script>
   <script>
     const display = document.getElementById('display');
+    const replayBtn = document.getElementById('replayBtn');
     let rawInput = "";
     let showingResult = false;
+    let lastWords = "";
 
     function render() {
       display.textContent = rawInput;
@@ -167,23 +241,36 @@
       showingResult = false;
     }
 
-    document.getElementById('clear').addEventListener('click', () => { rawInput = ""; render(); });
-    document.getElementById('delete').addEventListener('click', () => {
-      if (showingResult) { rawInput = ""; render(); return; }
-      rawInput = rawInput.slice(0, -1);
-      render();
-    });
-    document.getElementById('enter').addEventListener('click', () => {
+    function convert() {
       if (!rawInput) return;
       const result = [];
       for (let i = 0; i < rawInput.length; i += 2) {
         const num = rawInput.substring(i, i + 2);
         result.push(mapping[num] || `[${num}]`);
       }
-      display.textContent = result.join(' ');
+      lastWords = result.join(' ');
+      display.textContent = lastWords;
       display.classList.add('word-result');
       showingResult = true;
+      replayBtn.disabled = false;
+      // Legge il risultato a voce
+      if (window.VoiceCore && VoiceCore.supported) {
+        VoiceCore.speak(lastWords, { rate: 0.9 });
+      }
+    }
+
+    document.getElementById('clear').addEventListener('click', () => {
+      rawInput = "";
+      render();
+      replayBtn.disabled = true;
+      lastWords = "";
     });
+    document.getElementById('delete').addEventListener('click', () => {
+      if (showingResult) { rawInput = ""; render(); replayBtn.disabled = true; lastWords = ""; return; }
+      rawInput = rawInput.slice(0, -1);
+      render();
+    });
+    document.getElementById('enter').addEventListener('click', convert);
 
     document.querySelectorAll('.keys button[data-value]').forEach(button => {
       button.addEventListener('click', () => {
@@ -199,16 +286,91 @@
         rawInput += e.key;
         render();
       } else if (e.key === 'Backspace') {
-        if (showingResult) { rawInput = ""; render(); return; }
+        if (showingResult) { rawInput = ""; render(); replayBtn.disabled = true; lastWords = ""; return; }
         rawInput = rawInput.slice(0, -1);
         render();
       } else if (e.key === 'Enter') {
-        document.getElementById('enter').click();
+        convert();
       } else if (e.key === 'Escape') {
         rawInput = "";
         render();
+        replayBtn.disabled = true;
+        lastWords = "";
       }
     });
+
+    // ---- Voce ----
+    const micBtn = document.getElementById('micBtn');
+    const micLabel = document.getElementById('micLabel');
+    const voiceHint = document.getElementById('voiceHint');
+
+    if (!window.VoiceCore || !VoiceCore.supported) {
+      micBtn.disabled = true;
+      replayBtn.disabled = true;
+      voiceHint.textContent = 'La voce non è supportata su questo browser. Prova Chrome o Safari aggiornati.';
+    } else {
+      let listening = false;
+      let recognizer = null;
+
+      function setListeningUI(on) {
+        listening = on;
+        micBtn.classList.toggle('listening', on);
+        micLabel.textContent = on ? 'Ascolto...' : 'Detta numero';
+      }
+
+      function startListening() {
+        if (listening) return;
+        VoiceCore.cancelSpeech();
+        voiceHint.textContent = 'Parla quando vuoi...';
+        recognizer = VoiceCore.createRecognizer({
+          onStart: () => setListeningUI(true),
+          onResult: (alts) => {
+            setListeningUI(false);
+            // Prova le alternative in ordine, prendi la prima che dà cifre valide
+            let digits = '';
+            for (const a of alts) {
+              digits = VoiceCore.speechToDigits(a);
+              if (digits) break;
+            }
+            if (!digits) {
+              voiceHint.textContent = `Non ho capito un numero (« ${alts[0] || ''} »). Riprova.`;
+              return;
+            }
+            voiceHint.textContent = `Sentito: « ${alts[0]} »`;
+            rawInput = digits;
+            render();
+            convert();
+          },
+          onNoSpeech: () => {
+            setListeningUI(false);
+            voiceHint.textContent = 'Non ho sentito. Premi di nuovo il microfono e parla.';
+          },
+          onError: (err) => {
+            setListeningUI(false);
+            if (err === 'not-allowed') {
+              voiceHint.textContent = 'Permesso microfono negato. Abilitalo nelle impostazioni del browser.';
+            } else {
+              voiceHint.textContent = 'Errore microfono: ' + err;
+            }
+          }
+        });
+        recognizer.start();
+      }
+
+      function stopListening() {
+        if (recognizer) recognizer.stop();
+        setListeningUI(false);
+      }
+
+      micBtn.addEventListener('click', () => {
+        if (listening) stopListening();
+        else startListening();
+      });
+
+      replayBtn.addEventListener('click', () => {
+        if (lastWords) VoiceCore.speak(lastWords, { rate: 0.9 });
+      });
+    }
   </script>
   <script src="pwa.js"></script>
 </body>

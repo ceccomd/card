@@ -150,11 +150,40 @@
 
     .game-header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
+      gap: 12px;
       margin-bottom: 4px;
     }
     .game-header h1 { font-size: 1.4rem; }
+
+    .voice-toggle {
+      background: var(--surface);
+      border: none;
+      border-radius: var(--pill);
+      min-height: 0;
+      padding: 9px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      box-shadow: var(--neu-raised-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: box-shadow 0.2s ease, color 0.2s ease;
+    }
+    .voice-toggle .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted, #b3a999);
+      transition: background 0.2s ease;
+    }
+    .voice-toggle.active {
+      box-shadow: var(--neu-pressed-sm);
+      color: var(--sage-dark);
+    }
+    .voice-toggle.active .dot { background: var(--sage-dark); }
+    .voice-toggle:disabled { opacity: 0.45; cursor: not-allowed; }
 
     .voice-status {
       margin: 10px 0 4px;
@@ -188,13 +217,17 @@
       <button id="classicModeBtn" class="primary">Gioco Classico</button>
       <button id="rangeModeBtn">Gioco Range</button>
       <button id="multiModeBtn">Multi-Cifre</button>
-      <button id="voiceModeBtn">Modalità Vocale</button>
       <button onclick="window.location.href='calc.html'">Calcolatore</button>
     </div>
   </main>
 
   <section id="classicGame" class="container hidden" aria-labelledby="classic-title">
-    <div class="game-header"><h1 id="classic-title">Gioco Classico</h1></div>
+    <div class="game-header">
+      <h1 id="classic-title">Gioco Classico</h1>
+      <button class="voice-toggle" id="classicVoiceToggle" type="button" aria-pressed="false" aria-label="Attiva modalità vocale">
+        <span class="dot" aria-hidden="true"></span><span>Voce</span>
+      </button>
+    </div>
     <p class="subtitle">Scrivi la parola corrispondente al numero</p>
     <div class="stats" role="status" aria-live="polite">
       <div class="chip"><span class="stat-value" id="classicCorrect">0</span><span class="stat-label">Corrette</span></div>
@@ -202,17 +235,28 @@
       <div class="chip streak" id="classicStreakChip"><span class="stat-value" id="classicStreak">0</span><span class="stat-label">Streak</span></div>
     </div>
     <div class="flashcard" id="classicFlashcard" role="img" aria-label="Numero da indovinare"></div>
-    <input type="text" id="classicAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
-    <div class="row" style="margin-top:10px;">
+    <p class="voice-status hidden" id="classicVoiceStatus" data-voice-only></p>
+    <p class="voice-heard hidden" id="classicVoiceHeard" aria-live="polite" data-voice-only></p>
+    <input type="text" id="classicAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola" data-text-only>
+    <div class="row" style="margin-top:10px;" data-text-only>
       <button id="classicCheckBtn" class="primary">Controlla</button>
       <button id="classicNextBtn" class="ghost">Prossimo</button>
     </div>
+    <div class="row hidden" style="margin-top:10px;" data-voice-only>
+      <button id="classicVoicePlayBtn" class="primary" type="button">Pausa</button>
+      <button id="classicVoiceRepeatBtn" class="ghost" type="button">Ripeti</button>
+    </div>
     <div class="feedback" id="classicFeedback" role="status" aria-live="polite"></div>
-    <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
+    <button class="back-btn" data-back="classic">← Torna al Menu</button>
   </section>
 
   <section id="rangeGame" class="container hidden" aria-labelledby="range-title">
-    <div class="game-header"><h1 id="range-title">Gioco Range</h1></div>
+    <div class="game-header">
+      <h1 id="range-title">Gioco Range</h1>
+      <button class="voice-toggle" id="rangeVoiceToggle" type="button" aria-pressed="false" aria-label="Attiva modalità vocale">
+        <span class="dot" aria-hidden="true"></span><span>Voce</span>
+      </button>
+    </div>
     <p class="subtitle">Limita l'allenamento a un intervallo</p>
     <div class="row">
       <input type="number" id="rangeMin" placeholder="Min" inputmode="numeric" aria-label="Numero minimo">
@@ -225,13 +269,19 @@
       <div class="chip streak" id="rangeStreakChip"><span class="stat-value" id="rangeStreak">0</span><span class="stat-label">Streak</span></div>
     </div>
     <div class="flashcard" id="rangeFlashcard" role="img" aria-label="Numero da indovinare"></div>
-    <input type="text" id="rangeAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola">
-    <div class="row" style="margin-top:10px;">
+    <p class="voice-status hidden" id="rangeVoiceStatus" data-voice-only></p>
+    <p class="voice-heard hidden" id="rangeVoiceHeard" aria-live="polite" data-voice-only></p>
+    <input type="text" id="rangeAnswer" placeholder="Risposta" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Inserisci la parola" data-text-only>
+    <div class="row" style="margin-top:10px;" data-text-only>
       <button id="rangeCheckBtn" class="primary">Controlla</button>
       <button id="rangeNextBtn" class="ghost">Prossimo</button>
     </div>
+    <div class="row hidden" style="margin-top:10px;" data-voice-only>
+      <button id="rangeVoicePlayBtn" class="primary" type="button">Pausa</button>
+      <button id="rangeVoiceRepeatBtn" class="ghost" type="button">Ripeti</button>
+    </div>
     <div class="feedback" id="rangeFeedback" role="status" aria-live="polite"></div>
-    <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
+    <button class="back-btn" data-back="range">← Torna al Menu</button>
   </section>
 
   <section id="multiGame" class="container hidden" aria-labelledby="multi-title">
@@ -254,29 +304,8 @@
     <button class="back-btn" onclick="showSection('menu')">← Torna al Menu</button>
   </section>
 
-  <section id="voiceMode" class="container hidden" aria-labelledby="voice-title">
-    <div class="game-header"><h1 id="voice-title">Modalità Vocale</h1></div>
-    <p class="subtitle">Cuffia consigliata. Ascolta il numero, rispondi a voce.</p>
-    <div class="stats" role="status" aria-live="polite">
-      <div class="chip"><span class="stat-value" id="voiceCorrect">0</span><span class="stat-label">Corrette</span></div>
-      <div class="chip"><span class="stat-value" id="voiceTotal">0</span><span class="stat-label">Totali</span></div>
-      <div class="chip streak" id="voiceStreakChip"><span class="stat-value" id="voiceStreak">0</span><span class="stat-label">Streak</span></div>
-    </div>
-    <div class="flashcard" id="voiceFlashcard" role="img" aria-label="Numero corrente">—</div>
-    <p class="voice-status" id="voiceStatus">Premi Avvia per iniziare</p>
-    <p class="voice-heard" id="voiceHeard" aria-live="polite"></p>
-    <div class="row" style="margin-top:10px;">
-      <button id="voiceToggleBtn" class="primary">Avvia</button>
-      <button id="voiceRepeatBtn" class="ghost" disabled>Ripeti</button>
-    </div>
-    <div class="feedback" id="voiceFeedback" role="status" aria-live="polite"></div>
-    <p id="voiceUnsupported" class="feedback error hidden" style="margin-top:14px;">
-      Questo browser non supporta il riconoscimento vocale. Prova Chrome o Safari su iOS 14.5+.
-    </p>
-    <button class="back-btn" onclick="stopVoiceMode(); showSection('menu')">← Torna al Menu</button>
-  </section>
-
   <script src="mapping.js"></script>
+  <script src="voice-core.js"></script>
   <script>
     function showSection(sectionId) {
       document.querySelectorAll('.container').forEach(sec => sec.classList.add('hidden'));
@@ -332,10 +361,6 @@
       showSection('multiGame');
       resetMultiGame();
     });
-    document.getElementById('voiceModeBtn').addEventListener('click', () => {
-      showSection('voiceMode');
-      if (typeof initVoiceMode === 'function') initVoiceMode();
-    });
 
     // --- Gioco Classico ---
     const classicState = { correct: 0, total: 0, streak: 0, answered: false };
@@ -352,7 +377,9 @@
       fb.textContent = "";
       fb.className = "feedback";
       classicState.answered = false;
-      document.getElementById('classicAnswer').focus();
+      if (!classicVoice || !classicVoice.isOn()) {
+        document.getElementById('classicAnswer').focus();
+      }
     }
     function checkClassicAnswer() {
       if (classicState.answered) return;
@@ -413,7 +440,9 @@
       feedbackEl.textContent = "";
       feedbackEl.className = "feedback";
       rangeState.answered = false;
-      document.getElementById('rangeAnswer').focus();
+      if (!rangeVoice || !rangeVoice.isOn()) {
+        document.getElementById('rangeAnswer').focus();
+      }
     }
     function checkRangeAnswer() {
       if (rangeState.answered || rangeKeys.length === 0) return;
@@ -449,7 +478,11 @@
       });
       rangeState.correct = rangeState.total = rangeState.streak = 0;
       updateStats('range', rangeState);
-      showRangeCard();
+      if (rangeVoice && rangeVoice.isOn()) {
+        rangeVoice.restart();
+      } else {
+        showRangeCard();
+      }
     });
     document.getElementById('rangeCheckBtn').addEventListener('click', checkRangeAnswer);
     document.getElementById('rangeNextBtn').addEventListener('click', showRangeCard);
@@ -543,6 +576,196 @@
       if (e.key === 'Enter') multiState.answered ? showMultiCard() : checkMultiAnswer();
     });
 
+    // --- Modalità Vocale integrata in Classico e Range ---
+    // Crea un controller voce per un singolo gioco. Riusa lo stato/statistiche del gioco "testuale".
+    function createGameVoice(cfg) {
+      // cfg = { prefix, pickKey, getCorrectWord, state, sectionId, onScored }
+      const prefix = cfg.prefix;
+      const supported = window.VoiceCore && VoiceCore.supported;
+
+      const toggleEl = document.getElementById(prefix + 'VoiceToggle');
+      const statusEl = document.getElementById(prefix + 'VoiceStatus');
+      const heardEl  = document.getElementById(prefix + 'VoiceHeard');
+      const cardEl   = document.getElementById(prefix + 'Flashcard');
+      const feedEl   = document.getElementById(prefix + 'Feedback');
+      const playBtn  = document.getElementById(prefix + 'VoicePlayBtn');
+      const repeatBtn = document.getElementById(prefix + 'VoiceRepeatBtn');
+      const section = document.getElementById(prefix + 'Game');
+
+      let on = false;        // toggle attivo
+      let running = false;   // ciclo ask→listen→feedback attivo
+      let currentKey = '';
+      let recognizer = null;
+
+      if (!supported) {
+        toggleEl.disabled = true;
+        toggleEl.title = 'Voce non supportata su questo browser';
+        return { isOn: () => false, stop: () => {}, exit: () => {} };
+      }
+
+      function setVoiceUI(active) {
+        section.querySelectorAll('[data-voice-only]').forEach(el => el.classList.toggle('hidden', !active));
+        section.querySelectorAll('[data-text-only]').forEach(el => el.classList.toggle('hidden', active));
+        toggleEl.classList.toggle('active', active);
+        toggleEl.setAttribute('aria-pressed', active ? 'true' : 'false');
+      }
+
+      function setStatus(msg) { if (statusEl) statusEl.textContent = msg || ''; }
+      function setHeard(msg)  { if (heardEl)  heardEl.textContent  = msg ? '« ' + msg + ' »' : ''; }
+
+      function setPlayLabel() {
+        playBtn.textContent = running ? 'Pausa' : 'Avvia';
+      }
+
+      async function ask() {
+        if (!on || !running) return;
+        const key = cfg.pickKey();
+        if (!key) { setStatus('Nessun numero disponibile'); return; }
+        currentKey = key;
+        cardEl.textContent = currentKey;
+        flashCard(cardEl);
+        setHeard('');
+        feedEl.textContent = ''; feedEl.className = 'feedback';
+        setStatus('Parlo...');
+        await VoiceCore.speak(VoiceCore.spokenNumber(currentKey));
+        if (!on || !running) return;
+        setStatus('Ti ascolto...');
+        recognizer.start();
+      }
+
+      async function repeatCurrent() {
+        if (!on) return;
+        if (!running) { running = true; setPlayLabel(); }
+        if (!currentKey) { ask(); return; }
+        setHeard('');
+        feedEl.textContent = ''; feedEl.className = 'feedback';
+        setStatus('Parlo...');
+        await VoiceCore.speak(VoiceCore.spokenNumber(currentKey));
+        if (!on || !running) return;
+        setStatus('Ti ascolto...');
+        recognizer.start();
+      }
+
+      async function handleAnswer(alts) {
+        if (!on) return;
+        const correctWord = cfg.getCorrectWord(currentKey);
+        const ok = alts.some(a => VoiceCore.matches(a, correctWord));
+        setHeard(alts[0] || '');
+        cfg.state.total++;
+        if (ok) { cfg.state.correct++; cfg.state.streak++; }
+        else    { cfg.state.streak = 0; }
+        setFeedback(feedEl, ok, ok ? 'Corretto' : 'Era: ' + correctWord, {
+          flashcard: cardEl, streak: cfg.state.streak
+        });
+        updateStats(prefix, cfg.state);
+        await VoiceCore.speak(ok ? 'corretto' : 'era ' + correctWord, { rate: 1 });
+        if (on && running) ask();
+      }
+
+      function buildRecognizer() {
+        recognizer = VoiceCore.createRecognizer({
+          onStart: () => setStatus('Ti ascolto...'),
+          onResult: (alts) => handleAnswer(alts),
+          onNoSpeech: () => {
+            if (!on || !running) return;
+            setStatus('Non ho sentito. Ripeto.');
+            setTimeout(() => { if (on && running) repeatCurrent(); }, 350);
+          },
+          onError: (err) => {
+            if (err === 'not-allowed') {
+              setStatus('Permesso microfono negato.');
+              turnOff();
+            } else {
+              setStatus('Errore: ' + err);
+            }
+          }
+        });
+      }
+
+      function turnOn() {
+        on = true;
+        running = true;
+        setVoiceUI(true);
+        setPlayLabel();
+        buildRecognizer();
+        ask();
+      }
+      function turnOff() {
+        running = false;
+        on = false;
+        if (recognizer) recognizer.stop();
+        VoiceCore.cancelSpeech();
+        setStatus('');
+        setHeard('');
+        setVoiceUI(false);
+      }
+      function pauseResume() {
+        if (!on) return;
+        if (running) {
+          running = false;
+          if (recognizer) recognizer.stop();
+          VoiceCore.cancelSpeech();
+          setStatus('In pausa');
+          setPlayLabel();
+        } else {
+          running = true;
+          setPlayLabel();
+          ask();
+        }
+      }
+
+      toggleEl.addEventListener('click', () => {
+        if (on) turnOff(); else turnOn();
+      });
+      playBtn.addEventListener('click', pauseResume);
+      repeatBtn.addEventListener('click', repeatCurrent);
+
+      return {
+        isOn: () => on,
+        stop: () => { if (on) turnOff(); },
+        exit: () => { if (on) turnOff(); },
+        restart: () => {
+          if (!on) return;
+          VoiceCore.cancelSpeech();
+          if (recognizer) recognizer.stop();
+          running = true;
+          setPlayLabel();
+          currentKey = '';
+          ask();
+        }
+      };
+    }
+
+    const classicVoice = createGameVoice({
+      prefix: 'classic',
+      pickKey: () => classicKeys[Math.floor(Math.random() * classicKeys.length)],
+      getCorrectWord: (k) => mapping[k],
+      state: classicState
+    });
+
+    const rangeVoice = createGameVoice({
+      prefix: 'range',
+      pickKey: () => {
+        if (rangeKeys.length === 0) {
+          // se l'utente non ha ancora premuto Avvia, prendiamo tutti i numeri
+          return classicKeys[Math.floor(Math.random() * classicKeys.length)];
+        }
+        return rangeKeys[Math.floor(Math.random() * rangeKeys.length)];
+      },
+      getCorrectWord: (k) => mapping[k],
+      state: rangeState
+    });
+
+    // Back button: ferma la voce prima di tornare al menu
+    document.querySelectorAll('.back-btn[data-back]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const which = btn.getAttribute('data-back');
+        if (which === 'classic') classicVoice.exit();
+        if (which === 'range')   rangeVoice.exit();
+        showSection('menu');
+      });
+    });
+
     // Deep link per gli shortcut PWA
     const params = new URLSearchParams(location.search);
     const mode = params.get('mode');
@@ -550,7 +773,6 @@
     else if (mode === 'range') { showSection('rangeGame'); resetRangeGame(); }
     else if (mode === 'multi') { showSection('multiGame'); resetMultiGame(); }
   </script>
-  <script src="voice.js"></script>
   <script src="pwa.js"></script>
 </body>
 </html>
