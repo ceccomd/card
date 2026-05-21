@@ -44,6 +44,17 @@
     .flashcard.flip { animation: cardFade 0.32s ease; }
     .flashcard.win  { color: var(--sage-dark); }
     .flashcard.lose { color: var(--error); animation: cardShake 0.32s; }
+
+    /* Multi-cifre può generare sequenze lunghe: il font si riduce con la viewport
+       e il numero va a capo se proprio non sta. */
+    #multiFlashcard {
+      font-size: clamp(1.3rem, 7.5vw, 3rem);
+      padding: 30px 16px;
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+      overflow-wrap: anywhere;
+      word-break: break-all;
+    }
     @keyframes cardFade {
       0%   { opacity: 0.3; transform: translateY(6px); }
       100% { opacity: 1;   transform: none; }
