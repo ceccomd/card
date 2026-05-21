@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const CACHE_NAME = `card-fonetica-${CACHE_VERSION}`;
 
 const CACHE_FILES = [
