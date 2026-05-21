@@ -11,6 +11,7 @@ const CACHE_FILES = [
   './pwa.js',
   './voice.js',
   './card-192.png',
+  './card-512.png',
   './card.png'
 ];
 
