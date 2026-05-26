@@ -358,8 +358,9 @@
       }
 
       function stopListening() {
-        if (recognizer) recognizer.stop();
+        if (recognizer) recognizer.abort();
         setListeningUI(false);
+        voiceHint.textContent = 'Premi il microfono per dettare un numero';
       }
 
       micBtn.addEventListener('click', () => {

@@ -202,6 +202,26 @@
       font-style: italic;
       min-height: 1.4em;
     }
+
+    /* Anello di stato sulla flashcard durante la modalità vocale */
+    section.voice-speaking .flashcard {
+      box-shadow: var(--neu-raised-lg), 0 0 0 3px var(--muted);
+    }
+    section.voice-listening .flashcard {
+      box-shadow: var(--neu-raised-lg), 0 0 0 3px var(--sage-dark);
+      animation: micPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes micPulse {
+      0%, 100% { transform: scale(1);    }
+      50%      { transform: scale(1.015); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      section.voice-listening .flashcard { animation: none; }
+    }
+
+    /* Tre bottoni in riga sotto la voce: lasciamo che siano stretti ma leggibili */
+    section[data-voice-only], section .row[data-voice-only] { gap: 8px; }
+    section .row[data-voice-only] button { padding-left: 8px; padding-right: 8px; font-size: 0.95rem; }
   </style>
 </head>
 <body>
@@ -244,6 +264,7 @@
     </div>
     <div class="row hidden" style="margin-top:10px;" data-voice-only>
       <button id="classicVoicePlayBtn" class="primary" type="button">Pausa</button>
+      <button id="classicVoiceSkipBtn" class="ghost" type="button">Salta</button>
       <button id="classicVoiceRepeatBtn" class="ghost" type="button">Ripeti</button>
     </div>
     <div class="feedback" id="classicFeedback" role="status" aria-live="polite"></div>
@@ -278,6 +299,7 @@
     </div>
     <div class="row hidden" style="margin-top:10px;" data-voice-only>
       <button id="rangeVoicePlayBtn" class="primary" type="button">Pausa</button>
+      <button id="rangeVoiceSkipBtn" class="ghost" type="button">Salta</button>
       <button id="rangeVoiceRepeatBtn" class="ghost" type="button">Ripeti</button>
     </div>
     <div class="feedback" id="rangeFeedback" role="status" aria-live="polite"></div>
@@ -579,7 +601,6 @@
     // --- Modalità Vocale integrata in Classico e Range ---
     // Crea un controller voce per un singolo gioco. Riusa lo stato/statistiche del gioco "testuale".
     function createGameVoice(cfg) {
-      // cfg = { prefix, pickKey, getCorrectWord, state, sectionId, onScored }
       const prefix = cfg.prefix;
       const supported = window.VoiceCore && VoiceCore.supported;
 
@@ -589,67 +610,90 @@
       const cardEl   = document.getElementById(prefix + 'Flashcard');
       const feedEl   = document.getElementById(prefix + 'Feedback');
       const playBtn  = document.getElementById(prefix + 'VoicePlayBtn');
+      const skipBtn  = document.getElementById(prefix + 'VoiceSkipBtn');
       const repeatBtn = document.getElementById(prefix + 'VoiceRepeatBtn');
       const section = document.getElementById(prefix + 'Game');
 
-      let on = false;        // toggle attivo
-      let running = false;   // ciclo ask→listen→feedback attivo
+      let on = false;          // toggle attivo
+      let running = false;     // ciclo ask→listen→feedback attivo
       let currentKey = '';
       let recognizer = null;
+      let wakeLock = null;
+      let noSpeechCount = 0;   // tentativi falliti consecutivi (no-speech)
+      let cycleId = 0;         // incrementato ad ogni round; serve per cancellare async stantii
 
       if (!supported) {
         toggleEl.disabled = true;
         toggleEl.title = 'Voce non supportata su questo browser';
-        return { isOn: () => false, stop: () => {}, exit: () => {} };
+        return { isOn: () => false, stop: () => {}, exit: () => {}, restart: () => {} };
       }
 
+      // ---- Indicatori UI ----
       function setVoiceUI(active) {
         section.querySelectorAll('[data-voice-only]').forEach(el => el.classList.toggle('hidden', !active));
         section.querySelectorAll('[data-text-only]').forEach(el => el.classList.toggle('hidden', active));
         toggleEl.classList.toggle('active', active);
         toggleEl.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (!active) section.classList.remove('voice-speaking', 'voice-listening');
       }
-
+      function setMicState(state) {
+        // state: 'speaking' | 'listening' | 'idle'
+        section.classList.toggle('voice-speaking',  state === 'speaking');
+        section.classList.toggle('voice-listening', state === 'listening');
+      }
       function setStatus(msg) { if (statusEl) statusEl.textContent = msg || ''; }
       function setHeard(msg)  { if (heardEl)  heardEl.textContent  = msg ? '« ' + msg + ' »' : ''; }
+      function setPlayLabel() { playBtn.textContent = running ? 'Pausa' : 'Avvia'; }
 
-      function setPlayLabel() {
-        playBtn.textContent = running ? 'Pausa' : 'Avvia';
+      // ---- Ciclo principale ----
+      async function speakAwait(text, opts) {
+        const myCycle = cycleId;
+        setMicState('speaking');
+        await VoiceCore.speak(text, opts);
+        // Se nel frattempo il round è cambiato o l'utente ha pausato, esci subito.
+        return myCycle === cycleId && on && running;
       }
 
       async function ask() {
         if (!on || !running) return;
+        cycleId++;
         const key = cfg.pickKey();
-        if (!key) { setStatus('Nessun numero disponibile'); return; }
+        if (!key) { setStatus('Nessun numero disponibile'); setMicState('idle'); return; }
         currentKey = key;
+        noSpeechCount = 0;
         cardEl.textContent = currentKey;
         flashCard(cardEl);
         setHeard('');
         feedEl.textContent = ''; feedEl.className = 'feedback';
         setStatus('Parlo...');
-        await VoiceCore.speak(VoiceCore.spokenNumber(currentKey));
-        if (!on || !running) return;
-        setStatus('Ti ascolto...');
-        recognizer.start();
+        const stillValid = await speakAwait(VoiceCore.spokenNumber(currentKey));
+        if (!stillValid) return;
+        listen();
       }
 
-      async function repeatCurrent() {
-        if (!on) return;
-        if (!running) { running = true; setPlayLabel(); }
-        if (!currentKey) { ask(); return; }
+      async function reSpeakCurrent() {
+        if (!on || !running) return;
+        cycleId++;
         setHeard('');
         feedEl.textContent = ''; feedEl.className = 'feedback';
         setStatus('Parlo...');
-        await VoiceCore.speak(VoiceCore.spokenNumber(currentKey));
+        const stillValid = await speakAwait(VoiceCore.spokenNumber(currentKey));
+        if (!stillValid) return;
+        listen();
+      }
+
+      function listen() {
         if (!on || !running) return;
         setStatus('Ti ascolto...');
-        recognizer.start();
+        setMicState('listening');
+        try { recognizer.start(); } catch (_) {}
       }
 
       async function handleAnswer(alts) {
         if (!on) return;
         const correctWord = cfg.getCorrectWord(currentKey);
         const ok = alts.some(a => VoiceCore.matches(a, correctWord));
+        noSpeechCount = 0;
         setHeard(alts[0] || '');
         cfg.state.total++;
         if (ok) { cfg.state.correct++; cfg.state.streak++; }
@@ -658,59 +702,127 @@
           flashcard: cardEl, streak: cfg.state.streak
         });
         updateStats(prefix, cfg.state);
-        await VoiceCore.speak(ok ? 'corretto' : 'era ' + correctWord, { rate: 1 });
-        if (on && running) ask();
+        setMicState('idle');
+        cycleId++;
+        const stillValid = await speakAwait(ok ? 'corretto' : 'era ' + correctWord, { rate: 1 });
+        if (stillValid) ask();
+      }
+
+      // Skip manuale: conta come errore e prosegue
+      async function skip() {
+        if (!on || !currentKey) return;
+        const correctWord = cfg.getCorrectWord(currentKey);
+        if (recognizer) recognizer.abort();
+        VoiceCore.cancelSpeech();
+        cfg.state.total++;
+        cfg.state.streak = 0;
+        setFeedback(feedEl, false, 'Era: ' + correctWord, {
+          flashcard: cardEl, streak: 0
+        });
+        updateStats(prefix, cfg.state);
+        if (!running) { running = true; setPlayLabel(); }
+        cycleId++;
+        const stillValid = await speakAwait('era ' + correctWord, { rate: 1 });
+        if (stillValid) ask();
+      }
+
+      // Dopo 2 no-speech consecutivi riveliamo la risposta e proseguiamo.
+      async function autoReveal() {
+        if (!on || !running) return;
+        const correctWord = cfg.getCorrectWord(currentKey);
+        cfg.state.total++;
+        cfg.state.streak = 0;
+        setFeedback(feedEl, false, 'Era: ' + correctWord, {
+          flashcard: cardEl, streak: 0
+        });
+        updateStats(prefix, cfg.state);
+        noSpeechCount = 0;
+        cycleId++;
+        const stillValid = await speakAwait('la risposta era ' + correctWord, { rate: 1 });
+        if (stillValid) ask();
       }
 
       function buildRecognizer() {
         recognizer = VoiceCore.createRecognizer({
-          onStart: () => setStatus('Ti ascolto...'),
+          onStart: () => { if (on && running) setStatus('Ti ascolto...'); },
           onResult: (alts) => handleAnswer(alts),
           onNoSpeech: () => {
             if (!on || !running) return;
-            setStatus('Non ho sentito. Ripeto.');
-            setTimeout(() => { if (on && running) repeatCurrent(); }, 350);
+            noSpeechCount++;
+            if (noSpeechCount === 1) {
+              setStatus('Non ho sentito. Ti rileggo.');
+              setTimeout(() => { if (on && running) reSpeakCurrent(); }, 350);
+            } else {
+              setStatus('Ti dico la risposta.');
+              setTimeout(() => { if (on && running) autoReveal(); }, 300);
+            }
           },
           onError: (err) => {
             if (err === 'not-allowed') {
               setStatus('Permesso microfono negato.');
               turnOff();
+            } else if (err === 'network') {
+              setStatus('Errore rete. Riprovo.');
+              setTimeout(() => { if (on && running) listen(); }, 800);
             } else {
-              setStatus('Errore: ' + err);
+              setStatus('Errore: ' + err + '. In pausa.');
+              if (running) pauseInternal();
             }
           }
         });
       }
 
+      // ---- WakeLock + visibility ----
+      const wl = VoiceCore.createWakeLock ? VoiceCore.createWakeLock() : null;
+
+      function onVisibility() {
+        if (!on) return;
+        if (document.visibilityState === 'hidden' && running) {
+          pauseInternal('Riprendi quando torni');
+        }
+      }
+      document.addEventListener('visibilitychange', onVisibility);
+
+      // ---- Stati on/off/pausa ----
       function turnOn() {
         on = true;
         running = true;
+        noSpeechCount = 0;
         setVoiceUI(true);
         setPlayLabel();
         buildRecognizer();
+        if (wl) wl.acquire();
         ask();
       }
       function turnOff() {
         running = false;
         on = false;
-        if (recognizer) recognizer.stop();
+        cycleId++;
+        if (recognizer) recognizer.abort();
         VoiceCore.cancelSpeech();
+        setMicState('idle');
         setStatus('');
         setHeard('');
         setVoiceUI(false);
+        if (wl) wl.release();
+      }
+      function pauseInternal(msg) {
+        running = false;
+        cycleId++;
+        if (recognizer) recognizer.abort();
+        VoiceCore.cancelSpeech();
+        setStatus(msg || 'In pausa');
+        setMicState('idle');
+        setPlayLabel();
       }
       function pauseResume() {
         if (!on) return;
         if (running) {
-          running = false;
-          if (recognizer) recognizer.stop();
-          VoiceCore.cancelSpeech();
-          setStatus('In pausa');
-          setPlayLabel();
+          pauseInternal();
         } else {
           running = true;
           setPlayLabel();
-          ask();
+          if (currentKey) reSpeakCurrent(); else ask();
         }
       }
 
@@ -718,7 +830,12 @@
         if (on) turnOff(); else turnOn();
       });
       playBtn.addEventListener('click', pauseResume);
-      repeatBtn.addEventListener('click', repeatCurrent);
+      repeatBtn.addEventListener('click', () => {
+        if (!on) return;
+        if (!running) { running = true; setPlayLabel(); }
+        reSpeakCurrent();
+      });
+      skipBtn.addEventListener('click', skip);
 
       return {
         isOn: () => on,
@@ -726,8 +843,9 @@
         exit: () => { if (on) turnOff(); },
         restart: () => {
           if (!on) return;
+          cycleId++;
+          if (recognizer) recognizer.abort();
           VoiceCore.cancelSpeech();
-          if (recognizer) recognizer.stop();
           running = true;
           setPlayLabel();
           currentKey = '';

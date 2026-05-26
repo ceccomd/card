@@ -31,9 +31,17 @@
       if (voice) u.voice = voice;
       u.rate = opts.rate || 0.95;
       u.pitch = opts.pitch || 1;
-      u.onend = () => resolve();
-      u.onerror = () => resolve();
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      u.onend = finish;
+      u.onerror = finish;
       synth.speak(u);
+      // Safety: su Safari iOS dopo screen-lock onend a volte non scatta.
+      // Forziamo la risoluzione dopo una stima generosa basata sulla lunghezza.
+      const estimatedMs = Math.min(12000, 1500 + (text ? text.length * 90 : 0));
+      setTimeout(() => {
+        if (!done) { try { synth.cancel(); } catch (_) {} finish(); }
+      }, estimatedMs);
     });
   }
 
@@ -53,12 +61,23 @@
   function contentWords(s) {
     return normalize(s).split(' ').filter(w => w && !FILLERS.has(w));
   }
+  // Alias per parole che si dicono diversamente da come si scrivono
+  // (es. "TV" pronunciato "tivù").
+  const PHONETIC_ALIASES = {
+    'tv': ['tivu', 'tivvu'],
+  };
+  function aliasMatch(word, uSet, joined) {
+    const alts = PHONETIC_ALIASES[word];
+    if (!alts) return false;
+    return alts.some(a => uSet.has(a) || joined === a);
+  }
   function matches(userText, correctText) {
     const cWords = contentWords(correctText);
     const uWords = contentWords(userText);
     if (!cWords.length || !uWords.length) return false;
     const uSet = new Set(uWords);
-    return cWords.every(w => uSet.has(w));
+    const joined = uWords.join('');
+    return cWords.every(w => uSet.has(w) || aliasMatch(w, uSet, joined));
   }
 
   function spokenNumber(k) {
@@ -171,18 +190,20 @@
   }
 
   // ---- Factory del riconoscitore vocale ----
-  // Crea un controller con start/stop. handlers: { onResult, onNoSpeech, onError }
+  // Crea un controller con start/stop/abort. handlers: { onStart, onResult, onNoSpeech, onError }
   function createRecognizer(handlers) {
     if (!Recog) return null;
     handlers = handlers || {};
     let recognition = null;
     let listening = false;
     let timeoutId = null;
+    let aborting = false;
 
     function clearT() { if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; } }
 
     function start() {
       if (listening) return;
+      aborting = false;
       try {
         recognition = new Recog();
         recognition.lang = 'it-IT';
@@ -195,13 +216,16 @@
           listening = true;
           if (handlers.onStart) handlers.onStart();
           clearT();
+          // Fail-safe: alcuni browser (in particolare Safari iOS) non sparano
+          // mai `no-speech` e restano muti. Forziamo una chiusura dopo 7 secondi.
           timeoutId = setTimeout(() => {
             try { recognition.stop(); } catch (_) {}
-          }, 8000);
+          }, 7000);
         };
         recognition.onresult = (e) => {
           handled = true;
           clearT();
+          if (aborting) return;
           const alts = [];
           const r = e.results[0];
           for (let i = 0; i < r.length; i++) alts.push(r[i].transcript);
@@ -210,6 +234,7 @@
         recognition.onerror = (e) => {
           listening = false;
           clearT();
+          if (aborting) { handled = true; return; }
           if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
             handled = true;
             if (handlers.onError) handlers.onError('not-allowed');
@@ -226,6 +251,7 @@
         recognition.onend = () => {
           listening = false;
           clearT();
+          if (aborting) return;
           if (!handled && handlers.onNoSpeech) handlers.onNoSpeech();
         };
         recognition.start();
@@ -241,7 +267,48 @@
       listening = false;
     }
 
-    return { start, stop, isListening: () => listening };
+    // abort = ferma senza emettere callback (per pausa/exit manuale)
+    function abort() {
+      aborting = true;
+      clearT();
+      if (recognition) { try { recognition.abort(); } catch (_) { try { recognition.stop(); } catch (_) {} } }
+      listening = false;
+    }
+
+    return { start, stop, abort, isListening: () => listening };
+  }
+
+  // ---- Wake Lock: tiene lo schermo acceso durante la sessione vocale ----
+  function createWakeLock() {
+    const wlSupported = 'wakeLock' in navigator;
+    let sentinel = null;
+    let wanted = false;
+
+    async function acquire() {
+      wanted = true;
+      if (!wlSupported) return false;
+      if (sentinel) return true;
+      try {
+        sentinel = await navigator.wakeLock.request('screen');
+        sentinel.addEventListener('release', () => { sentinel = null; });
+        return true;
+      } catch (_) {
+        sentinel = null;
+        return false;
+      }
+    }
+    async function release() {
+      wanted = false;
+      if (sentinel) {
+        try { await sentinel.release(); } catch (_) {}
+        sentinel = null;
+      }
+    }
+    // Se la pagina torna visibile e l'utente voleva il wake lock, lo riacquisiamo.
+    document.addEventListener('visibilitychange', () => {
+      if (wanted && document.visibilityState === 'visible' && !sentinel) acquire();
+    });
+    return { acquire, release, isHeld: () => !!sentinel, supported: wlSupported };
   }
 
   global.VoiceCore = {
@@ -253,6 +320,7 @@
     speechToDigits,
     parseItalianNumber,
     createRecognizer,
+    createWakeLock,
     cancelSpeech: () => { if (synth) { try { synth.cancel(); } catch (_) {} } }
   };
 })(window);
